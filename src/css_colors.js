@@ -1,4 +1,4 @@
-{
+export default {
 	"black": "#000000",
 	"silver": "#c0c0c0",
 	"gray": "#808080",
@@ -146,4 +146,4 @@
 	"wheat": "#f5deb3",
 	"whitesmoke": "#f5f5f5",
 	"yellowgreen": "#9acd32"
-}
+};

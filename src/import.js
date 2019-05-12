@@ -94,12 +94,15 @@ export const load_FOLD = function(input, callback) {
 	}
 };
 
-
 /** parser error to check against */
-const pErr = (new window.DOMParser())
+let pErr = (new window.DOMParser())
 	.parseFromString("INVALID", "text/xml")
 	.getElementsByTagName("parsererror")[0]
 	.namespaceURI;
+if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+	console.warn("Firefox users, ignore XML Parsing Error on page load");
+}
+
 
 const parseAsXML = function(input) {
 	let xml = (new window.DOMParser()).parseFromString(input, "text/xml");
