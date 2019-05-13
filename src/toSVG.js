@@ -1,4 +1,23 @@
+/**
+ * options:
+ * ["width"] width of SVG (not viewport, which is in FOLD coordinate space)
+ * ["height"] height of SVG (not viewport, which is in FOLD coordinate space)
+ * ["style"] CSS style to be placed in the header
+ * ["frame"] render a certain frame in "file_frames", default: top level
+ * rendering layers, with their default setting:
+ *   "vertices": false
+ *   "edges": true
+ *   "faces_vertices": true
+ *   "faces_edges": false
+ *   "boundaries": true
+ *
+ * // maybe soon...
+ * ["svg"] initialize an SVG to draw into. by default this will create one
+ * ["foldAngle"] convert fold-angle into alpha value for stroke
+ */
+
 import * as SVG from "./svg";
+import { default as defaultStyle } from "./styles/default";
 import {
 	bounding_rect,
 	get_boundary_vertices,
@@ -6,82 +25,107 @@ import {
 	faces_coloring
 } from "./graph";
 
-
 const CREASE_NAMES = {
-	"B": "boundary", "b": "boundary",
-	"M": "mountain", "m": "mountain",
-	"V": "valley",   "v": "valley",
-	"F": "mark",     "f": "mark",
-	"U": "mark",     "u": "mark"
+	B: "boundary", b: "boundary",
+	M: "mountain", m: "mountain",
+	V: "valley",   v: "valley",
+	F: "mark",     f: "mark",
+	U: "mark",     u: "mark"
 };
 
-const groupNamesPlural = {
-	boundary: "boundaries",
-	face: "faces",
-	crease: "creases",
-	vertex: "vertices"
+const DISPLAY_NAME = {
+	vertices: "vertices",
+	edges: "creases",
+	faces_vertices: "faces",
+	faces_edges: "faces_edges",
+	boundaries: "boundaries"
 };
 
 /**
  * specify a frame number otherwise it will render the top level
  */
-export const fold_to_svg = function(fold, cssRules) {
-	// console.log("fold_to_svg start");
-	// let graph = frame_number
-	// 	? flatten_frame(fold, frame_number)
-	// 	: fold;
+export const fold_to_svg = function(fold, options) {
+	let svg, style;
 	let graph = fold;
-	// if (isFolded(graph)) { }
-	let svg = SVG.svg();
+	let groups = {
+		boundaries: true,
+		faces_vertices: true,
+		faces_edges: false,
+		edges: true,
+		vertices: false
+	};
+	if (options != null) {
+		if (options.frame != null) {
+			graph = flatten_frame(fold, options.frame);
+		}
+		if (options.style != null) {
+			style = options.style;
+		}
+		svg = (options.svg != null) ? options.svg : SVG.svg();
+
+		if (options.svg != null) {
+			while (svg.children.length > 0) {
+				svg.removeChild(svg.children[0]);
+			}
+		}
+
+		Object.keys(groups)
+			.filter(key => options[key] != null)
+			.forEach(key => groups[key] = options[key]);
+	}
+		// update a previously initialized // vs. // svg create a new svg
+			// todo: this only updates similar group arrangement
+			//  need a pathway for if groups change
+
+	if (svg === undefined) { svg = SVG.svg(); }
+	if (style === undefined) { style = defaultStyle; }
+
 	let styleElement = SVG.style();
 	svg.appendChild(styleElement);
-	// svg.setAttribute("x", "0px");
-	// svg.setAttribute("y", "0px");
 	svg.setAttribute("width", "500px");
 	svg.setAttribute("height", "500px");
 
-	let groupNames = ["boundary", "face", "crease", "vertex"]
-		.map(singular => groupNamesPlural[singular])
-	let groups = groupNames.map(key => SVG.group());
-	groups.forEach(g => svg.appendChild(g));
-	groups.forEach((g,i) => g.setAttribute("id", groupNames[i]));
-	let obj = {};
-	groupNames.forEach((name,i) => obj[name] = groups[i]);
-	intoGroups(graph, obj);
-	let r = bounding_rect(graph);
-	SVG.setViewBox(svg, ...r);
+	let groupNames = Object.keys(groups)
+		.filter(key => groups[key] != null)
+		.map(singular => DISPLAY_NAME[singular]);
+
+	Object.keys(groups)
+		.filter(key => groups[key] === false)
+		.forEach(key => delete groups[key]);
+
+	// alternatively, get already-initialized groups from the options
+	Object.keys(groups).forEach(key => {
+		groups[key] = SVG.group();
+		groups[key].setAttribute("class", DISPLAY_NAME[key]);
+		svg.appendChild(groups[key]);
+	});
+
+	// draw geometry into groups
+	Object.keys(groups).forEach(key =>
+		drawFunc[key](graph).forEach(o =>
+			groups[key].appendChild(o)
+		)
+	);
+
+	let rect = bounding_rect(graph);
+	SVG.setViewBox(svg, ...rect);
 
 	// fill CSS style with --crease-width, and custom or a default style
-	let vmin = r[2] > r[3] ? r[3] : r[2];
-	let styleString = "\n";
-	styleString += "svg {\n --crease-width: " + vmin*0.005 + ";\n}\n";
-	styleString += (cssRules != null)
-		? cssRules
-		: defaultStyle;
-	styleString += "\n";
+	let vmin = rect[2] > rect[3] ? rect[3] : rect[2];
+	let styleString = `
+svg { --crease-width: ${vmin*0.005}; }
+${style}
+`;
 	// wrap style in CDATA section
 	var docu = new DOMParser().parseFromString('<xml></xml>', 'application/xml')
 	var cdata = docu.createCDATASection(styleString);
 	styleElement.appendChild(cdata);
 	return svg;
-}
+};
 
-export const defaultStyle = "svg * {\n stroke-width: var(--crease-width);\n stroke-linecap: round;\n stroke: black;\n}\npolygon {\n fill: none;\n stroke: none;\n stroke-linejoin: bevel;\n}\n.boundary {\n fill: white;\n stroke: black;\n}\n.mountain{\n stroke: #e14929;\n}\n.valley{\n stroke: #314f69;\nstroke-dasharray: calc( var(--crease-width) * 2) calc( var(--crease-width) * 2);\n}\n.mark {\n stroke: #888;\n}\n.foldedForm #faces polygon {\n /*stroke: black;*/\n}\n.foldedForm #faces .front {\n fill: steelblue;\n}\n.foldedForm #faces .back {\n fill: peru;\n}\n.foldedForm #creases line {\n stroke: none;\n}";
-
-/**
- * if you already have groups initialized, to save on re-initializing, pass the groups
- * in as values under these keys, and they will get drawn into.
- */
-export const intoGroups = function(graph, {boundaries, faces, creases, vertices}) {
-	if (boundaries){ drawBoundary(graph).forEach(b => boundaries.appendChild(b)); }
-	if (faces){ drawFaces(graph).forEach(f => faces.appendChild(f)); }
-	if (creases){ drawCreases(graph).forEach(c => creases.appendChild(c)); }
-	if (vertices){ drawVertices(graph).forEach(v => vertices.appendChild(v)); }
-}
-
-const drawBoundary = function(graph) {
+const svgBoundaries = function(graph) {
 	if ("edges_vertices" in graph === false ||
-		"vertices_coords" in graph === false) {
+	    "vertices_coords" in graph === false) {
 		return [];
 	}
 	let boundary = get_boundary_vertices(graph)
@@ -91,7 +135,7 @@ const drawBoundary = function(graph) {
 	return [p];
 };
 
-const drawVertices = function(graph, options) {
+const svgVertices = function(graph, options) {
 	let radius = options && options.radius ? options.radius : 0.01;
 	return graph.vertices_coords.map((v,i) => {
 		let c = SVG.circle(v[0], v[1], radius);
@@ -101,9 +145,9 @@ const drawVertices = function(graph, options) {
 	});
 };
 
-const drawCreases = function(graph) {
+const svgEdges = function(graph) {
 	if ("edges_vertices" in graph === false ||
-		"vertices_coords" in graph === false) {
+	    "vertices_coords" in graph === false) {
 		return [];
 	}
 	let edges = graph.edges_vertices
@@ -117,9 +161,9 @@ const drawCreases = function(graph) {
 	});
 };
 
-const drawFacesVertices = function(graph) {
+const svgFacesVertices = function(graph) {
 	if ("faces_vertices" in graph === false ||
-		"vertices_coords" in graph === false) {
+	    "vertices_coords" in graph === false) {
 		return [];
 	}
 	let fAssignments = graph.faces_vertices.map(fv => "face");
@@ -135,10 +179,10 @@ const drawFacesVertices = function(graph) {
 	});
 };
 
-const drawFacesEdges = function(graph) {
+const svgFacesEdges = function(graph) {
 	if ("faces_edges" in graph === false ||
-		"edges_vertices" in graph === false ||
-		"vertices_coords" in graph === false) {
+	    "edges_vertices" in graph === false ||
+	    "vertices_coords" in graph === false) {
 		return [];
 	}
 	let fAssignments = graph.faces_vertices.map(fv => "face");
@@ -161,15 +205,15 @@ const drawFacesEdges = function(graph) {
 	});
 };
 
-function faces_sorted_by_layer(faces_layer) {
+const faces_sorted_by_layer = function(faces_layer) {
 	return faces_layer.map((layer,i) => ({layer:layer, i:i}))
 		.sort((a,b) => a.layer-b.layer)
 		.map(el => el.i)
 }
 
-const drawFaces = function(graph) {
+const svgFaces = function(graph) {
 	if ("faces_vertices" in graph === false ||
-		"vertices_coords" in graph === false) {
+	    "vertices_coords" in graph === false) {
 		return [];
 	}
 	let facesV = graph.faces_vertices
@@ -209,7 +253,6 @@ const drawFaces = function(graph) {
 			});
 };
 
-
 export const updateFaces = function(graph, group) {
 	let facesV = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]));
@@ -232,4 +275,12 @@ export const updateCreases = function(graph, group) {
 			line.setAttribute("x2", edges[i][1][0]);
 			line.setAttribute("y2", edges[i][1][1]);
 		});
+};
+
+const drawFunc = {
+	vertices: svgVertices,
+	edges: svgEdges,
+	faces_vertices: svgFaces,
+	faces_edges: svgFacesEdges,
+	boundaries: svgBoundaries
 };

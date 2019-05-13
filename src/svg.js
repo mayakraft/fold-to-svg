@@ -33,9 +33,9 @@ export const line = function(x1, y1, x2, y2) {
 
 export const circle = function(x, y, radius) {
 	let shape = document.createElementNS(svgNS, "circle");
-	if (x) { shape.setAttributeNS(null, "cx", x); }
-	if (y) { shape.setAttributeNS(null, "cy", y); }
-	if (radius) { shape.setAttributeNS(null, "r", radius); }
+	shape.setAttributeNS(null, "cx", x);
+	shape.setAttributeNS(null, "cy", y);
+	shape.setAttributeNS(null, "r", radius);
 	return shape;
 };
 
