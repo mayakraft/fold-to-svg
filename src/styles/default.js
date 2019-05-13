@@ -20,7 +20,7 @@ polygon {
  stroke-dasharray: calc( var(--crease-width) * 2) calc( var(--crease-width) * 2);
 }
 .mark {
- stroke: #888;
+ stroke: #BBB;
 }
 .foldedForm .faces polygon {
  /*stroke: black;*/

@@ -1,2 +1,146 @@
 /* (c) Robby Kraft, MIT License */
-const RES_CIRCLE=64,RES_PATH=64,svg_line_to_segments=function(a){return[[a.x1.baseVal.value,a.y1.baseVal.value,a.x2.baseVal.value,a.y2.baseVal.value]]},svg_rect_to_segments=function(a){let b=a.x.baseVal.value,c=a.y.baseVal.value,d=a.width.baseVal.value,e=a.height.baseVal.value;return[[b,c,b+d,c],[b+d,c,b+d,c+e],[b+d,c+e,b,c+e],[b,c+e,b,c]]},svg_circle_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.r.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,f)=>[c+e*Math.cos(2*(f/RES_CIRCLE*b)),d+e*Math.sin(2*(f/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_ellipse_to_segments=function(a){var b=Math.PI;let c=a.cx.baseVal.value,d=a.cy.baseVal.value,e=a.rx.baseVal.value,f=a.ry.baseVal.value;return Array.from(Array(RES_CIRCLE)).map((a,g)=>[c+e*Math.cos(2*(g/RES_CIRCLE*b)),d+f*Math.sin(2*(g/RES_CIRCLE*b))]).map((a,b,c)=>[c[b][0],c[b][1],c[(b+1)%c.length][0],c[(b+1)%c.length][1]])},svg_polygon_to_segments=function(a){return Array.from(a.points).map(a=>[a.x,a.y]).map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]])},svg_polyline_to_segments=function(a){let b=svg_polygon_to_segments(a);return b.pop(),b},svg_path_to_segments=function(a){let b=a.getAttribute("d"),c="Z"===b[b.length-1]||"z"===b[b.length-1],d=c?a.getTotalLength()/RES_PATH:a.getTotalLength()/(RES_PATH-1),e=Array.from(Array(RES_PATH)).map((b,c)=>a.getPointAtLength(c*d)).map(a=>[a.x,a.y]),f=e.map((b,c,d)=>[d[c][0],d[c][1],d[(c+1)%d.length][0],d[(c+1)%d.length][1]]);return c||f.pop(),f},parsers={line:svg_line_to_segments,rect:svg_rect_to_segments,circle:svg_circle_to_segments,ellipse:svg_ellipse_to_segments,polygon:svg_polygon_to_segments,polyline:svg_polyline_to_segments,path:svg_path_to_segments},parseable=Object.keys(parsers),svgNS="http://www.w3.org/2000/svg",svgAttributes=["version","xmlns","contentScriptType","contentStyleType","baseProfile","class","externalResourcesRequired","x","y","width","height","viewBox","preserveAspectRatio","zoomAndPan","style"],shape_attr={line:["x1","y1","x2","y2"],rect:["x","y","width","height"],circle:["cx","cy","r"],ellipse:["cx","cy","rx","ry"],polygon:["points"],polyline:["points"],path:["d"]},flatten_tree=function(a){return"g"===a.tagName||"svg"===a.tagName?Array.from(a.children).map(a=>flatten_tree(a)).reduce((c,a)=>c.concat(a),[]):[a]},attribute_list=function(b){return Array.from(b.attributes).filter(c=>-1===shape_attr[b.tagName].indexOf(c.name))},svg=function(b){let c=document.createElementNS(svgNS,"svg");svgAttributes.map(c=>({attribute:c,value:b.getAttribute(c)})).filter(a=>null!=a.value).forEach(a=>c.setAttribute(a.attribute,a.value)),null===c.getAttribute("xmlns")&&c.setAttribute("xmlns",svgNS);let d=flatten_tree(b),e=d.filter(a=>"style"===a.tagName||"defs"===a.tagName);0<e.length&&e.map(a=>a.cloneNode(!0)).forEach(a=>c.appendChild(a));let f=d.filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a).map(b=>[...b,attribute_list(a)])).reduce((c,a)=>c.concat(a),[]);return f.forEach(a=>{let b=document.createElementNS(svgNS,"line");b.setAttributeNS(null,"x1",a[0]),b.setAttributeNS(null,"y1",a[1]),b.setAttributeNS(null,"x2",a[2]),b.setAttributeNS(null,"y2",a[3]),null!=a[4]&&a[4].forEach(a=>b.setAttribute(a.nodeName,a.nodeValue)),c.appendChild(b)}),c},withAttributes=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a).map(b=>{let c={x1:b[0],y1:b[1],x2:b[2],y2:b[3]};return attribute_list(a).forEach(b=>c[b.nodeName]=b.value),c})).reduce((c,a)=>c.concat(a),[])},segments=function(a){return flatten_tree(a).filter(a=>-1!==parseable.indexOf(a.tagName)).map(a=>parsers[a.tagName](a)).reduce((c,a)=>c.concat(a),[])};export{svg,withAttributes,segments};
+const RES_CIRCLE = 64;
+const RES_PATH = 64;
+const svg_line_to_segments = function(line) {
+	return [[
+		line.x1.baseVal.value,
+		line.y1.baseVal.value,
+		line.x2.baseVal.value,
+		line.y2.baseVal.value
+	]];
+};
+const svg_rect_to_segments = function(rect) {
+	let x = rect.x.baseVal.value;
+	let y = rect.y.baseVal.value;
+	let width = rect.width.baseVal.value;
+	let height = rect.height.baseVal.value;
+	return [
+		[x, y, x+width, y],
+		[x+width, y, x+width, y+height],
+		[x+width, y+height, x, y+height],
+		[x, y+height, x, y]
+	];
+};
+const svg_circle_to_segments = function(circle) {
+	let x = circle.cx.baseVal.value;
+	let y = circle.cy.baseVal.value;
+	let r = circle.r.baseVal.value;
+	return Array.from(Array(RES_CIRCLE))
+		.map((_,i) => [x + r*Math.cos(i/RES_CIRCLE*Math.PI*2), y + r*Math.sin(i/RES_CIRCLE*Math.PI*2)])
+		.map((_,i,arr) => [arr[i][0], arr[i][1], arr[(i+1)%arr.length][0], arr[(i+1)%arr.length][1]]);
+};
+const svg_ellipse_to_segments = function(ellipse) {
+	let x = ellipse.cx.baseVal.value;
+	let y = ellipse.cy.baseVal.value;
+	let rx = ellipse.rx.baseVal.value;
+	let ry = ellipse.ry.baseVal.value;
+	return Array.from(Array(RES_CIRCLE))
+		.map((_,i) => [x + rx*Math.cos(i/RES_CIRCLE*Math.PI*2), y + ry*Math.sin(i/RES_CIRCLE*Math.PI*2)])
+		.map((_,i,arr) => [arr[i][0], arr[i][1], arr[(i+1)%arr.length][0], arr[(i+1)%arr.length][1]]);
+};
+const svg_polygon_to_segments = function(polygon) {
+	return Array.from(polygon.points)
+		.map(p => [p.x, p.y])
+		.map((_,i,a) => [a[i][0], a[i][1], a[(i+1)%a.length][0], a[(i+1)%a.length][1]])
+};
+const svg_polyline_to_segments = function(polyline) {
+	let circularPath = svg_polygon_to_segments(polyline);
+	circularPath.pop();
+	return circularPath;
+};
+const svg_path_to_segments = function(path) {
+	let d = path.getAttribute("d");
+	let isClosed = (d[d.length-1] === "Z" || d[d.length-1] === "z");
+	let segmentLength = (isClosed
+		? path.getTotalLength() / RES_PATH
+		: path.getTotalLength() / (RES_PATH-1));
+	let pathsPoints = Array.from(Array(RES_PATH))
+		.map((_,i) => path.getPointAtLength(i*segmentLength))
+		.map(p => [p.x, p.y]);
+	let segments = pathsPoints.map((_,i,a) => [a[i][0], a[i][1], a[(i+1)%a.length][0], a[(i+1)%a.length][1]]);
+	if (!isClosed) { segments.pop(); }
+	return segments;
+};
+const parsers = {
+	"line": svg_line_to_segments,
+	"rect": svg_rect_to_segments,
+	"circle": svg_circle_to_segments,
+	"ellipse": svg_ellipse_to_segments,
+	"polygon": svg_polygon_to_segments,
+	"polyline": svg_polyline_to_segments,
+	"path": svg_path_to_segments
+};
+
+const parseable = Object.keys(parsers);
+const svgNS = "http://www.w3.org/2000/svg";
+const svgAttributes = ["version", "xmlns", "contentScriptType", "contentStyleType", "baseProfile", "class", "externalResourcesRequired", "x", "y", "width", "height", "viewBox", "preserveAspectRatio", "zoomAndPan", "style"];
+const shape_attr = {
+	"line": ["x1", "y1", "x2", "y2"],
+	"rect": ["x", "y", "width", "height"],
+	"circle": ["cx", "cy", "r"],
+	"ellipse": ["cx", "cy", "rx", "ry"],
+	"polygon": ["points"],
+	"polyline": ["points"],
+	"path": ["d"]
+};
+const flatten_tree = function(element) {
+	if (element.tagName === "g" || element.tagName === "svg") {
+		return Array.from(element.children)
+			.map(child => flatten_tree(child))
+			.reduce((a,b) => a.concat(b),[]);
+	}
+	return [element];
+};
+const attribute_list = function(element) {
+	return Array.from(element.attributes)
+		.filter(a => shape_attr[element.tagName].indexOf(a.name) === -1);
+};
+const svg = function(svg) {
+	let newSVG = document.createElementNS(svgNS, "svg");
+	svgAttributes.map(a => ({attribute: a, value: svg.getAttribute(a)}))
+		.filter(obj => obj.value != null)
+		.forEach(obj => newSVG.setAttribute(obj.attribute, obj.value));
+	if (newSVG.getAttribute("xmlns") === null) {
+		newSVG.setAttribute("xmlns", svgNS);
+	}
+	let elements = flatten_tree(svg);
+	let styles = elements.filter(e => e.tagName === "style" || e.tagName === "defs");
+	if (styles.length > 0) {
+		styles.map(style => style.cloneNode(true))
+			.forEach(style => newSVG.appendChild(style));
+	}
+	let segments = elements
+		.filter(e => parseable.indexOf(e.tagName) !== -1)
+		.map(e => parsers[e.tagName](e).map(unit => [...unit, attribute_list(e)]))
+		.reduce((a,b) => a.concat(b), []);
+	segments.forEach(s => {
+		let line = document.createElementNS(svgNS, "line");
+		line.setAttributeNS(null, "x1", s[0]);
+		line.setAttributeNS(null, "y1", s[1]);
+		line.setAttributeNS(null, "x2", s[2]);
+		line.setAttributeNS(null, "y2", s[3]);
+		if (s[4] != null) {
+			s[4].forEach(attr => line.setAttribute(attr.nodeName, attr.nodeValue));
+		}
+		newSVG.appendChild(line);
+	});
+	return newSVG;
+};
+const withAttributes = function(svg) {
+	return flatten_tree(svg)
+		.filter(e => parseable.indexOf(e.tagName) !== -1)
+		.map(e => parsers[e.tagName](e).map(s => {
+			let obj = ({x1:s[0], y1:s[1], x2:s[2], y2:s[3]});
+			attribute_list(e).forEach(a => obj[a.nodeName] = a.value);
+			return obj;
+		}))
+		.reduce((a,b) => a.concat(b), []);
+};
+const segments = function(svg) {
+	return flatten_tree(svg)
+		.filter(e => parseable.indexOf(e.tagName) !== -1)
+		.map(e => parsers[e.tagName](e))
+		.reduce((a,b) => a.concat(b), []);
+};
+
+export { svg, withAttributes, segments };

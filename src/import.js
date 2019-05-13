@@ -7,6 +7,14 @@
  * due to possible async, object is returned in callback
  * callback(svg, error). includes error parameter if error exists
  */
+
+let DOMParser = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.DOMParser;
+if (typeof DOMParser === "undefined" || DOMParser === null) {
+	DOMParser = require("xmldom").DOMParser;
+}
+
 export const load_SVG = function(input, callback) {
 	if (input instanceof Document) {
 		callback(input);
@@ -32,7 +40,7 @@ export const load_SVG = function(input, callback) {
 							callback(svg);
 						}
 						return;
-					} catch {
+					} catch(err) {
 						callback(undefined, {
 							error: "load_SVG() (string) couldn't locate SVG contents"
 						});
@@ -95,18 +103,19 @@ export const load_FOLD = function(input, callback) {
 };
 
 /** parser error to check against */
-let pErr = (new window.DOMParser())
-	.parseFromString("INVALID", "text/xml")
-	.getElementsByTagName("parsererror")[0]
-	.namespaceURI;
-if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
-	console.warn("Firefox users, ignore XML Parsing Error on page load");
-}
+// let pErr = (new DOMParser())
+// 	.parseFromString("INVALID", "text/xml")
+// 	.getElementsByTagName("parsererror")[0]
+// 	.namespaceURI;
+// if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1) {
+// 	console.warn("Firefox users, ignore XML Parsing Error on page load");
+// }
 
 
 const parseAsXML = function(input) {
-	let xml = (new window.DOMParser()).parseFromString(input, "text/xml");
-	let parserErrors = xml.getElementsByTagNameNS(pErr, "parsererror");
+	let xml = (new DOMParser()).parseFromString(input, "text/xml");
+	// let parserErrors = xml.getElementsByTagNameNS(pErr, "parsererror");
+	let parserErrors = xml.getElementsByTagName("parsererror");
 	// let svg = xml.documentElement;
 	let svgs = xml.getElementsByTagName("svg");
 	if (parserErrors.length > 0) {

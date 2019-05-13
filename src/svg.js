@@ -1,4 +1,19 @@
 
+let DOMParser = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.DOMParser;
+if (typeof DOMParser === "undefined" || DOMParser === null) {
+	DOMParser = require("xmldom").DOMParser;
+}
+let document = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.document;
+if (typeof document === "undefined" || document === null) {
+	let string = "<!DOCTYPE html><title>a</title>"
+	document = new DOMParser()
+		.parseFromString("<!DOCTYPE html><title>a</title>", "text/html")
+}
+
 const svgNS = "http://www.w3.org/2000/svg";
 
 export const svg = function() {

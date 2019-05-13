@@ -1,20 +1,32 @@
 /**
- * options:
+ * ## options
+ * ### boolean
+ * - "style" incorporate a stylesheet (default/custom) into <svg> header
+ *     default: true
+ * - render layers, with their default setting:
+ *   - "vertices": false
+ *   - "edges": true
+ *   - "faces_vertices": true
+ *   - "faces_edges": false
+ *   - "boundaries": true
+ *
+ * ### data
  * ["width"] width of SVG (not viewport, which is in FOLD coordinate space)
  * ["height"] height of SVG (not viewport, which is in FOLD coordinate space)
- * ["style"] CSS style to be placed in the header
+ * ["stylesheet"] CSS style to be placed in the header
  * ["frame"] render a certain frame in "file_frames", default: top level
- * rendering layers, with their default setting:
- *   "vertices": false
- *   "edges": true
- *   "faces_vertices": true
- *   "faces_edges": false
- *   "boundaries": true
  *
  * // maybe soon...
  * ["svg"] initialize an SVG to draw into. by default this will create one
  * ["foldAngle"] convert fold-angle into alpha value for stroke
  */
+
+let DOMParser = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.DOMParser;
+if (typeof DOMParser === "undefined" || DOMParser === null) {
+	DOMParser = require("xmldom").DOMParser;
+}
 
 import * as SVG from "./svg";
 import { default as defaultStyle } from "./styles/default";
@@ -45,8 +57,9 @@ const DISPLAY_NAME = {
  * specify a frame number otherwise it will render the top level
  */
 export const fold_to_svg = function(fold, options) {
-	let svg, style;
+	let svg, stylesheet;
 	let graph = fold;
+	let style = true;
 	let groups = {
 		boundaries: true,
 		faces_vertices: true,
@@ -58,15 +71,19 @@ export const fold_to_svg = function(fold, options) {
 		if (options.frame != null) {
 			graph = flatten_frame(fold, options.frame);
 		}
+		if (options.stylesheet != null) {
+			stylesheet = options.stylesheet;
+		}
 		if (options.style != null) {
 			style = options.style;
 		}
 		svg = (options.svg != null) ? options.svg : SVG.svg();
 
 		if (options.svg != null) {
-			while (svg.children.length > 0) {
-				svg.removeChild(svg.children[0]);
-			}
+			Object.values(DISPLAY_NAME)
+				.forEach(name => svg.querySelectorAll("."+name)
+					.forEach(child => svg.removeChild(child))
+			);
 		}
 
 		Object.keys(groups)
@@ -78,7 +95,7 @@ export const fold_to_svg = function(fold, options) {
 			//  need a pathway for if groups change
 
 	if (svg === undefined) { svg = SVG.svg(); }
-	if (style === undefined) { style = defaultStyle; }
+	if (stylesheet === undefined) { stylesheet = defaultStyle; }
 
 	let styleElement = SVG.style();
 	svg.appendChild(styleElement);
@@ -102,7 +119,7 @@ export const fold_to_svg = function(fold, options) {
 
 	// draw geometry into groups
 	Object.keys(groups).forEach(key =>
-		drawFunc[key](graph).forEach(o =>
+		components[key](graph).forEach(o =>
 			groups[key].appendChild(o)
 		)
 	);
@@ -112,13 +129,12 @@ export const fold_to_svg = function(fold, options) {
 
 	// fill CSS style with --crease-width, and custom or a default style
 	let vmin = rect[2] > rect[3] ? rect[3] : rect[2];
-	let styleString = `
-svg { --crease-width: ${vmin*0.005}; }
-${style}
-`;
+	let innerStyle = (style
+		? `\nsvg { --crease-width: ${vmin*0.005}; }\n${stylesheet}\n`
+		: `\nsvg { --crease-width: ${vmin*0.005}; }\n`);
 	// wrap style in CDATA section
 	var docu = new DOMParser().parseFromString('<xml></xml>', 'application/xml')
-	var cdata = docu.createCDATASection(styleString);
+	var cdata = docu.createCDATASection(innerStyle);
 	styleElement.appendChild(cdata);
 	return svg;
 };
@@ -277,7 +293,7 @@ export const updateCreases = function(graph, group) {
 		});
 };
 
-const drawFunc = {
+export const components = {
 	vertices: svgVertices,
 	edges: svgEdges,
 	faces_vertices: svgFaces,
