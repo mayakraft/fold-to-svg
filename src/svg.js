@@ -9,7 +9,6 @@ let document = (typeof window === "undefined" || window === null)
 	? undefined
 	: window.document;
 if (typeof document === "undefined" || document === null) {
-	let string = "<!DOCTYPE html><title>a</title>"
 	document = new DOMParser()
 		.parseFromString("<!DOCTYPE html><title>a</title>", "text/html")
 }

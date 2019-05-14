@@ -27,14 +27,22 @@ let DOMParser = (typeof window === "undefined" || window === null)
 if (typeof DOMParser === "undefined" || DOMParser === null) {
 	DOMParser = require("xmldom").DOMParser;
 }
+let XMLSerializer = (typeof window === "undefined" || window === null)
+	? undefined
+	: window.XMLSerializer;
+if (typeof XMLSerializer === "undefined" || XMLSerializer === null) {
+	XMLSerializer = require("xmldom").XMLSerializer;
+}
 
 import * as SVG from "./svg";
+import vkXML from "../include/vkbeautify-xml";
 import { default as defaultStyle } from "./styles/default";
 import {
 	bounding_rect,
 	get_boundary_vertices,
 	faces_matrix_coloring,
-	faces_coloring
+	faces_coloring,
+	flatten_frame
 } from "./graph";
 
 const CREASE_NAMES = {
@@ -43,7 +51,7 @@ const CREASE_NAMES = {
 	V: "valley",   v: "valley",
 	F: "mark",     f: "mark",
 	U: "mark",     u: "mark"
-};
+};  // just remember: "fuck you, mark"
 
 const DISPLAY_NAME = {
 	vertices: "vertices",
@@ -97,6 +105,18 @@ export const fold_to_svg = function(fold, options) {
 	if (svg === undefined) { svg = SVG.svg(); }
 	if (stylesheet === undefined) { stylesheet = defaultStyle; }
 
+	// copy file/frame classes to top level
+	let file_classes = (graph.file_classes != null
+		? graph.file_classes : []).join(" ");
+	let frame_classes = graph.frame_classes != null
+		? graph.frame_classes : [].join(" ");
+	let top_level_classes = [file_classes, frame_classes]
+		.filter(s => s !== "")
+		.join(" ");
+	// todo: append, don't replace
+	let svgClasses = svg.getAttribute("class");
+	svg.setAttribute("class", top_level_classes);
+
 	let styleElement = SVG.style();
 	svg.appendChild(styleElement);
 	svg.setAttribute("width", "500px");
@@ -130,13 +150,18 @@ export const fold_to_svg = function(fold, options) {
 	// fill CSS style with --crease-width, and custom or a default style
 	let vmin = rect[2] > rect[3] ? rect[3] : rect[2];
 	let innerStyle = (style
-		? `\nsvg { --crease-width: ${vmin*0.005}; }\n${stylesheet}\n`
+		? `\nsvg { --crease-width: ${vmin*0.005}; }\n${stylesheet}`
 		: `\nsvg { --crease-width: ${vmin*0.005}; }\n`);
+
 	// wrap style in CDATA section
-	var docu = new DOMParser().parseFromString('<xml></xml>', 'application/xml')
+	var docu = (new DOMParser())
+		.parseFromString('<xml></xml>', 'application/xml');
 	var cdata = docu.createCDATASection(innerStyle);
 	styleElement.appendChild(cdata);
-	return svg;
+
+	let stringified = (new XMLSerializer()).serializeToString(svg);
+	let beautified = vkXML(stringified);
+	return beautified;
 };
 
 const svgBoundaries = function(graph) {
@@ -153,28 +178,37 @@ const svgBoundaries = function(graph) {
 
 const svgVertices = function(graph, options) {
 	let radius = options && options.radius ? options.radius : 0.01;
-	return graph.vertices_coords.map((v,i) => {
-		let c = SVG.circle(v[0], v[1], radius);
-		c.setAttribute("class", "vertex");
-		c.setAttribute("id", ""+i);
-		return c;
-	});
+	let svg_vertices = graph.vertices_coords
+		.map(v => SVG.circle(v[0], v[1], radius));
+	svg_vertices.forEach((c,i) => c.setAttribute("id", ""+i));
+	return svg_vertices;
 };
+
+const make_edge_assignment_names = function(graph) {
+	// if (graph.edges_vertices == null) { return []; }
+	// if (graph.edges_vertices == null || graph.edges_assignment == null ||
+	// 	graph.edges_vertices.length !== graph.edges_assignment.length) {
+	// 	return [];
+	// 	// return Array(graph.edges_vertices.length).fill("mark");
+	// }
+	return (graph.edges_vertices == null || graph.edges_assignment == null ||
+		graph.edges_vertices.length !== graph.edges_assignment.length
+		? []
+		: graph.edges_assignment.map(a => CREASE_NAMES[a]));
+}
 
 const svgEdges = function(graph) {
 	if ("edges_vertices" in graph === false ||
 	    "vertices_coords" in graph === false) {
 		return [];
 	}
-	let edges = graph.edges_vertices
-		.map(ev => ev.map(v => graph.vertices_coords[v]));
-	let eAssignments = graph.edges_assignment.map(a => CREASE_NAMES[a]);
-	return edges.map((e,i) => {
-		let l = SVG.line(e[0][0], e[0][1], e[1][0], e[1][1]);
-		l.setAttribute("class", eAssignments[i]);
-		l.setAttribute("id", ""+i);
-		return l;
-	});
+	let svg_edges = graph.edges_vertices
+		.map(ev => ev.map(v => graph.vertices_coords[v]))
+		.map(e => SVG.line(e[0][0], e[0][1], e[1][0], e[1][1]));
+	svg_edges.forEach((edge, i) => edge.setAttribute("id", ""+i));
+	make_edge_assignment_names(graph)
+		.forEach((a, i) => svg_edges[i].setAttribute("class", a));
+	return svg_edges;
 };
 
 const svgFacesVertices = function(graph) {
@@ -182,17 +216,11 @@ const svgFacesVertices = function(graph) {
 	    "vertices_coords" in graph === false) {
 		return [];
 	}
-	let fAssignments = graph.faces_vertices.map(fv => "face");
-	let facesV = !(graph.faces_vertices) ? [] : graph.faces_vertices
+	let svg_faces = graph.faces_vertices
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
-		// .map(face => Geom.Polygon(face));
-	// facesV = facesV.map(face => face.scale(0.6666));
-	return facesV.filter(f => f != null).map((face, i) => {
-		let p = SVG.polygon(face);
-		p.setAttribute("class", fAssignments[i]);
-		p.setAttribute("id", ""+i);
-		return p;
-	});
+		.map(face => SVG.polygon(face));
+	svg_faces.forEach((face, i) => face.setAttribute("id", ""+i));
+	return svg_faces;
 };
 
 const svgFacesEdges = function(graph) {
@@ -201,24 +229,16 @@ const svgFacesEdges = function(graph) {
 	    "vertices_coords" in graph === false) {
 		return [];
 	}
-	let fAssignments = graph.faces_vertices.map(fv => "face");
-	let facesE = !(graph.faces_edges) ? [] : graph.faces_edges
+	let svg_faces = graph.faces_edges
 		.map(face_edges => face_edges
 			.map(edge => graph.edges_vertices[edge])
 			.map((vi,i,arr) => {
 				let next = arr[(i+1)%arr.length];
-				return (vi[1] === next[0] || vi[1] === next[1]
-					? vi[0] : vi[1]);
+				return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
 			}).map(v => graph.vertices_coords[v])
-		)
-		// .map(face => Geom.Polygon(face));
-	// facesE = facesE.map(face => face.scale(0.8333));
-	return facesE.filter(f => f != null).map((face, i) => {
-		let p = SVG.polygon(face);
-		p.setAttribute("class", fAssignments[i]);
-		p.setAttribute("id", ""+i);
-		return p;
-	});
+		).map(face => SVG.polygon(face));
+	svg_faces.forEach((face, i) => face.setAttribute("id", ""+i));
+	return svg_faces;
 };
 
 const faces_sorted_by_layer = function(faces_layer) {
@@ -237,10 +257,10 @@ const svgFaces = function(graph) {
 		// .map(face => Geom.Polygon(face));
 
 	// determine coloring of each face
-	let coloring = graph["re:faces_coloring"];
+	let coloring = graph["faces_re:coloring"];
 	if (coloring == null) {
-		if ("re:faces_matrix" in graph) {
-			coloring = faces_matrix_coloring(graph["re:faces_matrix"]);
+		if ("faces_re:matrix" in graph) {
+			coloring = faces_matrix_coloring(graph["faces_re:matrix"]);
 		} else {
 			// last resort. assuming a lot with the 0 face.
 			coloring = faces_coloring(graph, 0);
@@ -248,11 +268,11 @@ const svgFaces = function(graph) {
 	}
 
 	// determine layer order
-	let orderIsCertain = graph["re:faces_layer"] != null 
-		&& graph["re:faces_layer"].length === graph.faces_vertices.length;
+	let orderIsCertain = graph["faces_re:layer"] != null 
+		&& graph["faces_re:layer"].length === graph.faces_vertices.length;
 
 	let order = orderIsCertain
-		? faces_sorted_by_layer(graph["re:faces_layer"])
+		? faces_sorted_by_layer(graph["faces_re:layer"])
 		: graph.faces_vertices.map((_,i) => i);
 
 	return orderIsCertain
@@ -269,29 +289,29 @@ const svgFaces = function(graph) {
 			});
 };
 
-export const updateFaces = function(graph, group) {
-	let facesV = graph.faces_vertices
-		.map(fv => fv.map(v => graph.vertices_coords[v]));
-	let strings = facesV
-		.map(face => face.reduce((a, b) => a + b[0] + "," + b[1] + " ", ""));
-	Array.from(group.children)
-		.sort((a,b) => parseInt(a.id) - parseInt(b.id))
-		.forEach((face, i) => face.setAttribute("points", strings[i]));
-};
+// export const updateFaces = function(graph, group) {
+// 	let facesV = graph.faces_vertices
+// 		.map(fv => fv.map(v => graph.vertices_coords[v]));
+// 	let strings = facesV
+// 		.map(face => face.reduce((a, b) => a + b[0] + "," + b[1] + " ", ""));
+// 	Array.from(group.children)
+// 		.sort((a,b) => parseInt(a.id) - parseInt(b.id))
+// 		.forEach((face, i) => face.setAttribute("points", strings[i]));
+// };
 
-export const updateCreases = function(graph, group) {
-	let edges = graph.edges_vertices
-		.map(ev => ev.map(v => graph.vertices_coords[v]));
+// export const updateCreases = function(graph, group) {
+// 	let edges = graph.edges_vertices
+// 		.map(ev => ev.map(v => graph.vertices_coords[v]));
 
-	Array.from(group.children)
-		// .sort((a,b) => parseInt(a.id) - parseInt(b.id))
-		.forEach((line,i) => {
-			line.setAttribute("x1", edges[i][0][0]);
-			line.setAttribute("y1", edges[i][0][1]);
-			line.setAttribute("x2", edges[i][1][0]);
-			line.setAttribute("y2", edges[i][1][1]);
-		});
-};
+// 	Array.from(group.children)
+// 		// .sort((a,b) => parseInt(a.id) - parseInt(b.id))
+// 		.forEach((line,i) => {
+// 			line.setAttribute("x1", edges[i][0][0]);
+// 			line.setAttribute("y1", edges[i][0][1]);
+// 			line.setAttribute("x2", edges[i][1][0]);
+// 			line.setAttribute("y2", edges[i][1][1]);
+// 		});
+// };
 
 export const components = {
 	vertices: svgVertices,

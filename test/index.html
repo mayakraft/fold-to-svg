@@ -5,8 +5,16 @@
 </body>
 <script type="text/javascript" src="../fold-svg.js"></script>
 <script>
-FOLD_SVG.toSVG("crane.fold", function(e){
-	document.body.appendChild(e);
-});
+// FOLD_SVG.toSVG("crane.fold", function(e){
+// 	document.body.appendChild(e);
+// });
+
+fetch("crane.fold")
+	.then(result => result.text())
+	.then(result => {
+		console.log(result);
+		let svg = FOLD_SVG.toSVG(result);
+		document.body.appendChild(svg);
+	});
 
 </script>

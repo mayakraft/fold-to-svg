@@ -6,11 +6,10 @@ import cleanup from "rollup-plugin-cleanup";
 module.exports = {
 	input: "src/index.js",
 	output: {
-		name: "FOLD_SVG",
+		name: "fold-svg",
 		file: "fold-svg.js",
 		format: "umd",
 		// format: "es",
-		// format: "cjs",
 		banner: "/* (c) Robby Kraft, MIT License */",
 	},
 	plugins: [
