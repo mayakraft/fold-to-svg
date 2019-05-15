@@ -1,14 +1,14 @@
 const FOLD_SVG = require("../fold-svg");
-const fs = require('fs');
+const fs = require("fs");
 
 try {
-	FOLD_SVG.toSVG('{"key": invalid json}');
+	FOLD_SVG.toSVG("{\"key\": invalid json}");
 	console.log("test failed! invalid json should throw an error");
 } catch(error) {
 	// success. invalid json caught
 }
 
-fs.readFile('./test/single-vertex.fold', function (err, data) {
+fs.readFile("./test/single-vertex.fold", function (err, data) {
 	let singleVertex = JSON.parse(data);
 	let frame0 = FOLD_SVG.toSVG(singleVertex);
 	let frame1 = FOLD_SVG.toSVG(singleVertex, {frame:1});
@@ -20,7 +20,7 @@ fs.readFile('./test/single-vertex.fold', function (err, data) {
 	});
 });
 
-fs.readFile('./test/crane.fold', function (err, data) {
+fs.readFile("./test/crane.fold", function (err, data) {
 	let crane = FOLD_SVG.toSVG(JSON.parse(data));
 	fs.writeFile("./test/test-crane.svg", crane, (err) => {  
 		if (err) { throw err; }

@@ -1,6 +1,13 @@
 // import * as Import from "./import";
 import { svg_to_fold } from "./toFOLD";
-import { fold_to_svg, components } from "./toSVG";
+import {
+	fold_to_svg,
+	svgBoundaries,
+	svgVertices,
+	svgEdges,
+	svgFacesVertices,
+	svgFacesEdges
+} from "./toSVG";
 
 // get DOMParser and XMLSerializer from the browser or from Node
 let DOMParser = (typeof window === "undefined" || window === null)
@@ -16,8 +23,16 @@ if (typeof XMLSerializer === "undefined" || XMLSerializer === null) {
 	XMLSerializer = require("xmldom").XMLSerializer;
 }
 
+let core = {
+	svgBoundaries,
+	svgVertices,
+	svgEdges,
+	svgFacesVertices,
+	svgFacesEdges
+};
+
 let convert = {
-	components,
+	core,
 	toSVG: function(input, options) {
 		if (typeof input === "object" && input !== null) {
 			return fold_to_svg(input, options);

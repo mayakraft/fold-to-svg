@@ -1,14 +1,15 @@
 /**
  * ## options
  * ### boolean
- * - "style" incorporate a stylesheet (default/custom) into <svg> header
- *     default: true
  * - render layers, with their default setting:
  *   - "vertices": false
  *   - "edges": true
  *   - "faces_vertices": true
  *   - "faces_edges": false
  *   - "boundaries": true
+ *
+ * - "style" incorporate a stylesheet (default/custom) into <svg> header
+ *     options: "attributes", "inline", "css". default "css"
  *
  * ### data
  * ["width"] width of SVG (not viewport, which is in FOLD coordinate space)
@@ -17,8 +18,9 @@
  * ["frame"] render a certain frame in "file_frames", default: top level
  *
  * // maybe soon...
+ * "shadows": folded faces have little edge shadows
  * ["svg"] initialize an SVG to draw into. by default this will create one
- * ["foldAngle"] convert fold-angle into alpha value for stroke
+ * ["foldAngle"] show fold-angles as alpha values for stroke
  */
 
 let DOMParser = (typeof window === "undefined" || window === null)
@@ -51,13 +53,12 @@ const CREASE_NAMES = {
 	V: "valley",   v: "valley",
 	F: "mark",     f: "mark",
 	U: "mark",     u: "mark"
-};  // just remember: "fuck you, mark"
+};  // easy to remember: "fuck you, mark"
 
 const DISPLAY_NAME = {
 	vertices: "vertices",
 	edges: "creases",
-	faces_vertices: "faces",
-	faces_edges: "faces_edges",
+	faces: "faces",
 	boundaries: "boundaries"
 };
 
@@ -65,46 +66,27 @@ const DISPLAY_NAME = {
  * specify a frame number otherwise it will render the top level
  */
 export const fold_to_svg = function(fold, options) {
-	let svg, stylesheet;
+	let svg = SVG.svg();
+	let stylesheet = defaultStyle;
 	let graph = fold;
 	let style = true;
 	let groups = {
 		boundaries: true,
-		faces_vertices: true,
-		faces_edges: false,
+		faces: true,
 		edges: true,
 		vertices: false
 	};
+	let width = "500px";
+	let height = "500px";
 	if (options != null) {
+		if (options.width != null) { width = options.width; }
+		if (options.height != null) { height = options.height; }
+		if (options.style != null) { style = options.style; }
+		if (options.stylesheet != null) { stylesheet = options.stylesheet; }
 		if (options.frame != null) {
 			graph = flatten_frame(fold, options.frame);
 		}
-		if (options.stylesheet != null) {
-			stylesheet = options.stylesheet;
-		}
-		if (options.style != null) {
-			style = options.style;
-		}
-		svg = (options.svg != null) ? options.svg : SVG.svg();
-
-		if (options.svg != null) {
-			Object.values(DISPLAY_NAME)
-				.forEach(name => svg.querySelectorAll("."+name)
-					.forEach(child => svg.removeChild(child))
-			);
-		}
-
-		Object.keys(groups)
-			.filter(key => options[key] != null)
-			.forEach(key => groups[key] = options[key]);
 	}
-		// update a previously initialized // vs. // svg create a new svg
-			// todo: this only updates similar group arrangement
-			//  need a pathway for if groups change
-
-	if (svg === undefined) { svg = SVG.svg(); }
-	if (stylesheet === undefined) { stylesheet = defaultStyle; }
-
 	// copy file/frame classes to top level
 	let file_classes = (graph.file_classes != null
 		? graph.file_classes : []).join(" ");
@@ -113,24 +95,16 @@ export const fold_to_svg = function(fold, options) {
 	let top_level_classes = [file_classes, frame_classes]
 		.filter(s => s !== "")
 		.join(" ");
-	// todo: append, don't replace
-	let svgClasses = svg.getAttribute("class");
 	svg.setAttribute("class", top_level_classes);
+	svg.setAttribute("width", width);
+	svg.setAttribute("height", height);
 
 	let styleElement = SVG.style();
 	svg.appendChild(styleElement);
-	svg.setAttribute("width", "500px");
-	svg.setAttribute("height", "500px");
-
-	let groupNames = Object.keys(groups)
-		.filter(key => groups[key] != null)
-		.map(singular => DISPLAY_NAME[singular]);
 
 	Object.keys(groups)
 		.filter(key => groups[key] === false)
 		.forEach(key => delete groups[key]);
-
-	// alternatively, get already-initialized groups from the options
 	Object.keys(groups).forEach(key => {
 		groups[key] = SVG.group();
 		groups[key].setAttribute("class", DISPLAY_NAME[key]);
@@ -164,7 +138,8 @@ export const fold_to_svg = function(fold, options) {
 	return beautified;
 };
 
-const svgBoundaries = function(graph) {
+export const svgBoundaries = function(graph) {
+	// todo this needs to be able to handle multiple boundaries
 	if ("edges_vertices" in graph === false ||
 	    "vertices_coords" in graph === false) {
 		return [];
@@ -176,7 +151,10 @@ const svgBoundaries = function(graph) {
 	return [p];
 };
 
-const svgVertices = function(graph, options) {
+export const svgVertices = function(graph, options) {
+	if ("vertices_coords" in graph === false) {
+		return [];
+	}
 	let radius = options && options.radius ? options.radius : 0.01;
 	let svg_vertices = graph.vertices_coords
 		.map(v => SVG.circle(v[0], v[1], radius));
@@ -184,20 +162,7 @@ const svgVertices = function(graph, options) {
 	return svg_vertices;
 };
 
-const make_edge_assignment_names = function(graph) {
-	// if (graph.edges_vertices == null) { return []; }
-	// if (graph.edges_vertices == null || graph.edges_assignment == null ||
-	// 	graph.edges_vertices.length !== graph.edges_assignment.length) {
-	// 	return [];
-	// 	// return Array(graph.edges_vertices.length).fill("mark");
-	// }
-	return (graph.edges_vertices == null || graph.edges_assignment == null ||
-		graph.edges_vertices.length !== graph.edges_assignment.length
-		? []
-		: graph.edges_assignment.map(a => CREASE_NAMES[a]));
-}
-
-const svgEdges = function(graph) {
+export const svgEdges = function(graph) {
 	if ("edges_vertices" in graph === false ||
 	    "vertices_coords" in graph === false) {
 		return [];
@@ -211,7 +176,16 @@ const svgEdges = function(graph) {
 	return svg_edges;
 };
 
-const svgFacesVertices = function(graph) {
+const svgFaces = function(graph) {
+	if ("faces_vertices" in graph === true) {
+		return svgFacesVertices(graph);
+	} else if ("faces_edges" in graph === true) {
+		return svgFacesEdges(graph);
+	}
+	return [];
+}
+
+export const svgFacesVertices = function(graph) {
 	if ("faces_vertices" in graph === false ||
 	    "vertices_coords" in graph === false) {
 		return [];
@@ -220,10 +194,10 @@ const svgFacesVertices = function(graph) {
 		.map(fv => fv.map(v => graph.vertices_coords[v]))
 		.map(face => SVG.polygon(face));
 	svg_faces.forEach((face, i) => face.setAttribute("id", ""+i));
-	return svg_faces;
+	return finalize_faces(graph, svg_faces);
 };
 
-const svgFacesEdges = function(graph) {
+export const svgFacesEdges = function(graph) {
 	if ("faces_edges" in graph === false ||
 	    "edges_vertices" in graph === false ||
 	    "vertices_coords" in graph === false) {
@@ -232,61 +206,52 @@ const svgFacesEdges = function(graph) {
 	let svg_faces = graph.faces_edges
 		.map(face_edges => face_edges
 			.map(edge => graph.edges_vertices[edge])
-			.map((vi,i,arr) => {
+			.map((vi, i, arr) => {
 				let next = arr[(i+1)%arr.length];
 				return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
 			}).map(v => graph.vertices_coords[v])
 		).map(face => SVG.polygon(face));
 	svg_faces.forEach((face, i) => face.setAttribute("id", ""+i));
-	return svg_faces;
+	return finalize_faces(graph, svg_faces);
+};
+
+const finalize_faces = function(graph, svg_faces) {
+	let orderIsCertain = graph["faces_re:layer"] != null 
+		&& graph["faces_re:layer"].length === graph.faces_vertices.length;
+	// todo: include other ways of determining faces_ordering
+	if (orderIsCertain) {
+		// only if face order is known
+		make_faces_sidedness(graph)
+			.forEach((side, i) => svg_faces[i].setAttribute("class", side));
+	}
+	return (orderIsCertain
+		? faces_sorted_by_layer(graph["faces_re:layer"]).map(i => svg_faces[i])
+		: svg_faces);
+};
+
+const make_faces_sidedness = function(graph) {
+	// determine coloring of each face
+	let coloring = graph["faces_re:coloring"];
+	if (coloring == null) {
+		coloring = ("faces_re:matrix" in graph)
+			? faces_matrix_coloring(graph["faces_re:matrix"])
+				// replace this with a face-vertex-winding-order calculator
+			: faces_coloring(graph, 0);
+	}
+	return coloring.map(c => c ? "front" : "back");
 };
 
 const faces_sorted_by_layer = function(faces_layer) {
 	return faces_layer.map((layer,i) => ({layer:layer, i:i}))
 		.sort((a,b) => a.layer-b.layer)
 		.map(el => el.i)
-}
+};
 
-const svgFaces = function(graph) {
-	if ("faces_vertices" in graph === false ||
-	    "vertices_coords" in graph === false) {
-		return [];
-	}
-	let facesV = graph.faces_vertices
-		.map(fv => fv.map(v => graph.vertices_coords[v]))
-		// .map(face => Geom.Polygon(face));
-
-	// determine coloring of each face
-	let coloring = graph["faces_re:coloring"];
-	if (coloring == null) {
-		if ("faces_re:matrix" in graph) {
-			coloring = faces_matrix_coloring(graph["faces_re:matrix"]);
-		} else {
-			// last resort. assuming a lot with the 0 face.
-			coloring = faces_coloring(graph, 0);
-		}
-	}
-
-	// determine layer order
-	let orderIsCertain = graph["faces_re:layer"] != null 
-		&& graph["faces_re:layer"].length === graph.faces_vertices.length;
-
-	let order = orderIsCertain
-		? faces_sorted_by_layer(graph["faces_re:layer"])
-		: graph.faces_vertices.map((_,i) => i);
-
-	return orderIsCertain
-		? order.map(i => {
-				let p = SVG.polygon(facesV[i]);
-				p.setAttribute("class", coloring[i] ? "front" : "back");
-				p.setAttribute("id", ""+i);
-				return p;
-			})
-		: order.map(i => {
-				let p = SVG.polygon(facesV[i]);
-				p.setAttribute("id", ""+i);
-				return p;
-			});
+const make_edge_assignment_names = function(graph) {
+	return (graph.edges_vertices == null || graph.edges_assignment == null ||
+		graph.edges_vertices.length !== graph.edges_assignment.length
+		? []
+		: graph.edges_assignment.map(a => CREASE_NAMES[a]));
 };
 
 // export const updateFaces = function(graph, group) {
@@ -313,10 +278,9 @@ const svgFaces = function(graph) {
 // 		});
 // };
 
-export const components = {
+const components = {
 	vertices: svgVertices,
 	edges: svgEdges,
-	faces_vertices: svgFaces,
-	faces_edges: svgFacesEdges,
+	faces: svgFaces,
 	boundaries: svgBoundaries
 };
