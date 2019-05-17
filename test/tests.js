@@ -11,7 +11,7 @@ try {
 fs.readFile("./test/single-vertex.fold", function (err, data) {
 	let singleVertex = JSON.parse(data);
 	let frame0 = FOLD_SVG.toSVG(singleVertex);
-	let frame1 = FOLD_SVG.toSVG(singleVertex, {frame:1});
+	let frame1 = FOLD_SVG.toSVG(singleVertex, {frame:1, shadows:true, padding:0.1});
 	[frame0, frame1].forEach(function(frame,i){
 		fs.writeFile("./test/test-frame-"+i+".svg", frame, (err) => {  
 			if (err) { throw err; }

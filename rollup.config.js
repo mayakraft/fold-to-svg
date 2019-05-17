@@ -8,8 +8,8 @@ module.exports = {
 	output: {
 		name: "fold_svg",
 		file: "fold-svg.js",
-		format: "umd",
-		// format: "es",
+		// format: "umd",
+		format: "es",
 		banner: "/* (c) Robby Kraft, MIT License */",
 	},
 	plugins: [
@@ -18,10 +18,10 @@ module.exports = {
 			maxEmptyLines: 0
 		}),
 		// json({}),
-		minify( {
-			bannerNewLine: true,
-			comments: false
-		} ),
+		// minify( {
+		// 	bannerNewLine: true,
+		// 	comments: false
+		// } ),
 		string({
 			include: "**/*.fold",  // allows .fold files to be imported as a module
 		})

@@ -70,6 +70,8 @@ export const fold_to_svg = function(fold, options) {
 	let stylesheet = defaultStyle;
 	let graph = fold;
 	let style = true;
+	let shadows = false;
+	let padding = 0;
 	let groups = {
 		boundaries: true,
 		faces: true,
@@ -83,6 +85,8 @@ export const fold_to_svg = function(fold, options) {
 		if (options.height != null) { height = options.height; }
 		if (options.style != null) { style = options.style; }
 		if (options.stylesheet != null) { stylesheet = options.stylesheet; }
+		if (options.shadows != null) { shadows = options.shadows; }
+		if (options.padding != null) { padding = options.padding; }
 		if (options.frame != null) {
 			graph = flatten_frame(fold, options.frame);
 		}
@@ -118,8 +122,22 @@ export const fold_to_svg = function(fold, options) {
 		)
 	);
 
+	if ("re:instructions" in graph) {
+		let instructionLayer = SVG.group();
+		svg.appendChild(instructionLayer);
+		renderInstructions(graph, instructionLayer);
+	}
+
+	if (shadows) {
+		let shadow_id = "face_shadow";
+		let shadowFilter = SVG.shadowFilter(shadow_id);
+		svg.appendChild(shadowFilter);
+		Array.from(groups.faces.childNodes)
+			.forEach(f => f.setAttribute("filter", "url(#"+shadow_id+")"));
+	}
+
 	let rect = bounding_rect(graph);
-	SVG.setViewBox(svg, ...rect);
+	SVG.setViewBox(svg, ...rect, padding);
 
 	// fill CSS style with --crease-width, and custom or a default style
 	let vmin = rect[2] > rect[3] ? rect[3] : rect[2];
@@ -284,3 +302,35 @@ const components = {
 	faces: svgFaces,
 	boundaries: svgBoundaries
 };
+
+
+const renderInstructions = function(graph, group) {
+	if (graph["re:instructions"] === undefined) { return; }
+	if (graph["re:instructions"].length === 0) { return; }
+	Array.from(graph["re:instructions"]).forEach(instruction => {
+		// draw crease lines
+		if ("re:instruction_creaseLines" in instruction === true) {
+			instruction["re:instruction_creaseLines"].forEach(crease => {
+				let creaseClass = ("re:instruction_creaseLines_class" in crease)
+					? crease["re:instruction_creaseLines_class"]
+					: "valley"; // unspecified should throw error really
+				let pts = crease["re:instruction_creaseLines_endpoints"]
+				if (pts !== undefined) {
+					let l = SVG.line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
+					l.setAttribute("class", creaseClass);
+					group.appendChild(l);
+				}
+			});
+		}
+		// draw arrows and instruction markings
+		if ("re:instruction_arrows" in instruction === true) {
+			instruction["re:instruction_arrows"].forEach(arrowInst => {
+				let start = arrowInst["re:instruction_arrows_start"];
+				let end = arrowInst["re:instruction_arrows_end"];
+				if (start === undefined || end === undefined) { return; }
+				let arrow = SVG.arcArrow(start, end, {start:true, end:true});
+				group.appendChild(arrow);
+			});
+		}
+	});
+}
