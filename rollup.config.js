@@ -1,4 +1,4 @@
-import minify from "rollup-plugin-babel-minify";
+// import minify from "rollup-plugin-babel-minify";
 // import json from "rollup-plugin-json";
 import string from "rollup-plugin-string";
 import cleanup from "rollup-plugin-cleanup";

@@ -8,6 +8,8 @@
  *   - "faces_edges": false
  *   - "boundaries": true
  *
+ * - "diagram" if the "re:diagrams" exists, render arrows and lines...
+ *
  * - "style" incorporate a stylesheet (default/custom) into <svg> header
  *     options: "attributes", "inline", "css". default "css"
  *
@@ -122,7 +124,7 @@ export const fold_to_svg = function(fold, options) {
 		)
 	);
 
-	if ("re:instructions" in graph) {
+	if ("re:diagrams" in graph) {
 		let instructionLayer = SVG.group();
 		svg.appendChild(instructionLayer);
 		renderInstructions(graph, instructionLayer);
@@ -305,16 +307,16 @@ const components = {
 
 
 const renderInstructions = function(graph, group) {
-	if (graph["re:instructions"] === undefined) { return; }
-	if (graph["re:instructions"].length === 0) { return; }
-	Array.from(graph["re:instructions"]).forEach(instruction => {
+	if (graph["re:diagrams"] === undefined) { return; }
+	if (graph["re:diagrams"].length === 0) { return; }
+	Array.from(graph["re:diagrams"]).forEach(instruction => {
 		// draw crease lines
-		if ("re:instruction_creaseLines" in instruction === true) {
-			instruction["re:instruction_creaseLines"].forEach(crease => {
-				let creaseClass = ("re:instruction_creaseLines_class" in crease)
-					? crease["re:instruction_creaseLines_class"]
+		if ("re:diagram_lines" in instruction === true) {
+			instruction["re:diagram_lines"].forEach(crease => {
+				let creaseClass = ("re:diagram_line_classes" in crease)
+					? crease["re:diagram_line_classes"].join(" ")
 					: "valley"; // unspecified should throw error really
-				let pts = crease["re:instruction_creaseLines_endpoints"]
+				let pts = crease["re:diagram_line_coords"]
 				if (pts !== undefined) {
 					let l = SVG.line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
 					l.setAttribute("class", creaseClass);
@@ -323,13 +325,25 @@ const renderInstructions = function(graph, group) {
 			});
 		}
 		// draw arrows and instruction markings
-		if ("re:instruction_arrows" in instruction === true) {
-			instruction["re:instruction_arrows"].forEach(arrowInst => {
-				let start = arrowInst["re:instruction_arrows_start"];
-				let end = arrowInst["re:instruction_arrows_end"];
-				if (start === undefined || end === undefined) { return; }
-				let arrow = SVG.arcArrow(start, end, {start:true, end:true});
-				group.appendChild(arrow);
+		if ("re:diagram_arrows" in instruction === true) {
+			instruction["re:diagram_arrows"].forEach(arrowInst => {
+				if (arrowInst["re:diagram_arrow_coords"].length === 2) {
+					// start is [0], end is [1]
+					let p = arrowInst["re:diagram_arrow_coords"];
+					let side = p[0][0] < p[1][0];
+					if (Math.abs(p[0][0] - p[1][0]) < 0.1) { // xs are ~ the same
+						side = p[0][1] < p[1][1]
+							? p[0][0] < 0.5
+							: p[0][0] > 0.5;
+					}
+					if (Math.abs(p[0][1] - p[1][1]) < 0.1) { // if ys are the same
+						side = p[0][0] < p[1][0]
+							? p[0][1] > 0.5
+							: p[0][1] < 0.5;
+					}
+					let arrow = SVG.arcArrow(p[0], p[1], {side});
+					group.appendChild(arrow);
+				}
 			});
 		}
 	});
