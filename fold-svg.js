@@ -1222,116 +1222,6 @@
     return [+(r / 255), +(g / 255), +(b / 255), +(a / 255)];
   };
 
-  var defaultStyle = "svg * {\n  stroke-width:var(--crease-width);\n  stroke-linecap:round;\n  stroke:black;\n}\npolygon {fill:none; stroke:none; stroke-linejoin:bevel;}\n.boundary {fill:white; stroke:black;}\n.mark {stroke:#aaa;}\n.mountain {stroke:#f00;}\n.valley{\n  stroke:#00f;\n  stroke-dasharray:calc(var(--crease-width)*2) calc(var(--crease-width)*2);\n}\n.foldedForm .boundary {fill:none;stroke:none;}\n.foldedForm .faces polygon { stroke:black; }\n.foldedForm .faces .front { fill:#fff; }\n.foldedForm .faces .back { fill:#ddd; }\n.foldedForm .creases line { stroke:none; }\n";
-
-  function vkXML$1 (text, step) {
-    const ar = text.replace(/>\s{0,}</g, "><")
-      .replace(/</g, "~::~<")
-      .replace(/\s*xmlns\:/g, "~::~xmlns:")
-      .split("~::~");
-    const len = ar.length;
-    let inComment = false;
-    let deep = 0;
-    let str = "";
-    const space = (step != null && typeof step === "string" ? step : "\t");
-    const shift = ["\n"];
-    for (let si = 0; si < 100; si += 1) {
-      shift.push(shift[si] + space);
-    }
-    for (let ix = 0; ix < len; ix += 1) {
-      if (ar[ix].search(/<!/) > -1) {
-        str += shift[deep] + ar[ix];
-        inComment = true;
-        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
-          || ar[ix].search(/!DOCTYPE/) > -1) {
-          inComment = false;
-        }
-      } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
-        str += ar[ix];
-        inComment = false;
-      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix])
-        && /^<[\w:\-\.\,]+/.exec(ar[ix - 1])
-        == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
-        str += ar[ix];
-        if (!inComment) { deep -= 1; }
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1
-        && ar[ix].search(/\/>/) === -1) {
-        str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
-        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\//) > -1) {
-        str = !inComment ? str += shift[--deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/\/>/) > -1) {
-        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
-      } else if (ar[ix].search(/<\?/) > -1) {
-        str += shift[deep] + ar[ix];
-      } else if (ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1) {
-        str += shift[deep] + ar[ix];
-      } else {
-        str += ar[ix];
-      }
-    }
-    return (str[0] === "\n") ? str.slice(1) : str;
-  }
-
-  let DOMParser$2 = (typeof window === "undefined" || window === null)
-    ? undefined
-    : window.DOMParser;
-  if (typeof DOMParser$2 === "undefined" || DOMParser$2 === null) {
-    DOMParser$2 = require("xmldom").DOMParser;
-  }
-  let XMLSerializer$2 = (typeof window === "undefined" || window === null)
-    ? undefined
-    : window.XMLSerializer;
-  if (typeof XMLSerializer$2 === "undefined" || XMLSerializer$2 === null) {
-    XMLSerializer$2 = require("xmldom").XMLSerializer;
-  }
-  let document$2 = (typeof window === "undefined" || window === null)
-    ? undefined
-    : window.document;
-  if (typeof document$2 === "undefined" || document$2 === null) {
-    document$2 = new DOMParser$2()
-      .parseFromString("<!DOCTYPE html><title>a</title>", "text/html");
-  }
-
-  const svgNS$1 = "http://www.w3.org/2000/svg";
-  const shadowFilter = function (id_name = "shadow") {
-    const defs = document$2.createElementNS(svgNS$1, "defs");
-    const filter = document$2.createElementNS(svgNS$1, "filter");
-    filter.setAttribute("width", "200%");
-    filter.setAttribute("height", "200%");
-    filter.setAttribute("id", id_name);
-    const blur = document$2.createElementNS(svgNS$1, "feGaussianBlur");
-    blur.setAttribute("in", "SourceAlpha");
-    blur.setAttribute("stdDeviation", "0.005");
-    blur.setAttribute("result", "blur");
-    const offset = document$2.createElementNS(svgNS$1, "feOffset");
-    offset.setAttribute("in", "blur");
-    offset.setAttribute("result", "offsetBlur");
-    const flood = document$2.createElementNS(svgNS$1, "feFlood");
-    flood.setAttribute("flood-color", "#000");
-    flood.setAttribute("flood-opacity", "0.3");
-    flood.setAttribute("result", "offsetColor");
-    const composite = document$2.createElementNS(svgNS$1, "feComposite");
-    composite.setAttribute("in", "offsetColor");
-    composite.setAttribute("in2", "offsetBlur");
-    composite.setAttribute("operator", "in");
-    composite.setAttribute("result", "offsetBlur");
-    const merge = document$2.createElementNS(svgNS$1, "feMerge");
-    const mergeNode1 = document$2.createElementNS(svgNS$1, "feMergeNode");
-    const mergeNode2 = document$2.createElementNS(svgNS$1, "feMergeNode");
-    mergeNode2.setAttribute("in", "SourceGraphic");
-    merge.appendChild(mergeNode1);
-    merge.appendChild(mergeNode2);
-    defs.appendChild(filter);
-    filter.appendChild(blur);
-    filter.appendChild(offset);
-    filter.appendChild(flood);
-    filter.appendChild(composite);
-    filter.appendChild(merge);
-    return defs;
-  };
-
   const removeChildren = function (parent) {
     while (parent.lastChild) {
       parent.removeChild(parent.lastChild);
@@ -1439,39 +1329,39 @@
       return removeChildren(element);
     };
     element.addClass = function (...args) {
-      return addClass(element, args);
+      return addClass(element, ...args);
     };
     element.removeClass = function (...args) {
-      return removeClass(element, args);
+      return removeClass(element, ...args);
     };
     element.setClass = function (...args) {
-      return setClass(element, args);
+      return setClass(element, ...args);
     };
     element.setID = function (...args) {
-      return setID(element, args);
+      return setID(element, ...args);
     };
   };
   const attachViewBoxMethods = function (element) {
     element.setViewBox = function (...args) {
-      return setViewBox(element, args);
+      return setViewBox(element, ...args);
     };
     element.getViewBox = function (...args) {
-      return getViewBox(element, args);
+      return getViewBox(element, ...args);
     };
     element.scaleViewBox = function (...args) {
-      return scaleViewBox(element, args);
+      return scaleViewBox(element, ...args);
     };
     element.translateViewBox = function (...args) {
-      return translateViewBox(element, args);
+      return translateViewBox(element, ...args);
     };
     element.convertToViewBox = function (...args) {
-      return convertToViewBox(element, args);
+      return convertToViewBox(element, ...args);
     };
   };
   const attachAppendableMethods = function (element, methods) {
     Object.keys(methods).forEach((key) => {
       element[key] = function (...args) {
-        const g = methods[key](args);
+        const g = methods[key](...args);
         element.appendChild(g);
         return g;
       };
@@ -1496,7 +1386,7 @@
     document$1$1 = new DOMParser$1$1()
       .parseFromString("<!DOCTYPE html><title>a</title>", "text/html");
   }
-  const svgNS$2 = "http://www.w3.org/2000/svg";
+  const svgNS$1 = "http://www.w3.org/2000/svg";
   const setPoints = function (polygon, pointsArray) {
     if (pointsArray == null || pointsArray.constructor !== Array) {
       return;
@@ -1530,7 +1420,7 @@
     shape.setAttributeNS(null, "d", d);
   };
   const line = function (x1, y1, x2, y2) {
-    const shape = document$1$1.createElementNS(svgNS$2, "line");
+    const shape = document$1$1.createElementNS(svgNS$1, "line");
     if (x1) { shape.setAttributeNS(null, "x1", x1); }
     if (y1) { shape.setAttributeNS(null, "y1", y1); }
     if (x2) { shape.setAttributeNS(null, "x2", x2); }
@@ -1539,7 +1429,7 @@
     return shape;
   };
   const circle = function (x, y, radius) {
-    const shape = document$1$1.createElementNS(svgNS$2, "circle");
+    const shape = document$1$1.createElementNS(svgNS$1, "circle");
     if (x) { shape.setAttributeNS(null, "cx", x); }
     if (y) { shape.setAttributeNS(null, "cy", y); }
     if (radius) { shape.setAttributeNS(null, "r", radius); }
@@ -1547,7 +1437,7 @@
     return shape;
   };
   const ellipse = function (x, y, rx, ry) {
-    const shape = document$1$1.createElementNS(svgNS$2, "ellipse");
+    const shape = document$1$1.createElementNS(svgNS$1, "ellipse");
     if (x) { shape.setAttributeNS(null, "cx", x); }
     if (y) { shape.setAttributeNS(null, "cy", y); }
     if (rx) { shape.setAttributeNS(null, "rx", rx); }
@@ -1556,7 +1446,7 @@
     return shape;
   };
   const rect = function (x, y, width, height) {
-    const shape = document$1$1.createElementNS(svgNS$2, "rect");
+    const shape = document$1$1.createElementNS(svgNS$1, "rect");
     if (x) { shape.setAttributeNS(null, "x", x); }
     if (y) { shape.setAttributeNS(null, "y", y); }
     if (width) { shape.setAttributeNS(null, "width", width); }
@@ -1565,13 +1455,13 @@
     return shape;
   };
   const polygon = function (pointsArray) {
-    const shape = document$1$1.createElementNS(svgNS$2, "polygon");
+    const shape = document$1$1.createElementNS(svgNS$1, "polygon");
     setPoints(shape, pointsArray);
     attachClassMethods(shape);
     return shape;
   };
   const polyline = function (pointsArray) {
-    const shape = document$1$1.createElementNS(svgNS$2, "polyline");
+    const shape = document$1$1.createElementNS(svgNS$1, "polyline");
     setPoints(shape, pointsArray);
     attachClassMethods(shape);
     return shape;
@@ -1580,13 +1470,13 @@
     const pts = [[fromX, fromY], [c1X, c1Y], [c2X, c2Y], [toX, toY]]
       .map(p => p.join(","));
     const d = `M ${pts[0]} C ${pts[1]} ${pts[2]} ${pts[3]}`;
-    const shape = document$1$1.createElementNS(svgNS$2, "path");
+    const shape = document$1$1.createElementNS(svgNS$1, "path");
     shape.setAttributeNS(null, "d", d);
     attachClassMethods(shape);
     return shape;
   };
   const text = function (textString, x, y) {
-    const shape = document$1$1.createElementNS(svgNS$2, "text");
+    const shape = document$1$1.createElementNS(svgNS$1, "text");
     shape.innerHTML = textString;
     shape.setAttributeNS(null, "x", x);
     shape.setAttributeNS(null, "y", y);
@@ -1594,13 +1484,13 @@
     return shape;
   };
   const wedge = function (x, y, radius, angleA, angleB) {
-    const shape = document$1$1.createElementNS(svgNS$2, "path");
+    const shape = document$1$1.createElementNS(svgNS$1, "path");
     setArc(shape, x, y, radius, angleA, angleB, true);
     attachClassMethods(shape);
     return shape;
   };
   const arc = function (x, y, radius, angleA, angleB) {
-    const shape = document$1$1.createElementNS(svgNS$2, "path");
+    const shape = document$1$1.createElementNS(svgNS$1, "path");
     setArc(shape, x, y, radius, angleA, angleB, false);
     attachClassMethods(shape);
     return shape;
@@ -1846,7 +1736,7 @@
     }
     return arrowGroup;
   };
-  const svgNS$2$1 = "http://www.w3.org/2000/svg";
+  const svgNS$2 = "http://www.w3.org/2000/svg";
   const drawMethods = {
     line,
     circle,
@@ -1868,20 +1758,20 @@
     attachAppendableMethods(svgImage, drawMethods);
   };
   const svg$1 = function () {
-    const svgImage = document$1$1.createElementNS(svgNS$2$1, "svg");
+    const svgImage = document$1$1.createElementNS(svgNS$2, "svg");
     svgImage.setAttribute("version", "1.1");
-    svgImage.setAttribute("xmlns", svgNS$2$1);
+    svgImage.setAttribute("xmlns", svgNS$2);
     setupSVG(svgImage);
     return svgImage;
   };
   const group = function () {
-    const g = document$1$1.createElementNS(svgNS$2$1, "g");
+    const g = document$1$1.createElementNS(svgNS$2, "g");
     attachClassMethods(g);
     attachAppendableMethods(g, drawMethods);
     return g;
   };
   const style = function () {
-    const s = document$1$1.createElementNS(svgNS$2$1, "style");
+    const s = document$1$1.createElementNS(svgNS$2, "style");
     s.setAttribute("type", "text/css");
     return s;
   };
@@ -1893,12 +1783,6 @@
     V: "valley",   v: "valley",
     F: "mark",     f: "mark",
     U: "mark",     u: "mark",
-  };
-  const DISPLAY_NAME = {
-    vertices: "vertices",
-    edges: "creases",
-    faces: "faces",
-    boundaries: "boundaries",
   };
   const faces_sorted_by_layer = function (faces_layer) {
     return faces_layer.map((layer, i) => ({ layer, i }))
@@ -2002,13 +1886,124 @@
     }
     return [];
   };
-  const components = {
+  var components = {
     vertices: svgVertices,
     edges: svgEdges,
     faces: svgFaces,
     boundaries: svgBoundaries,
   };
-  const renderInstructions = function (graph, renderGroup) {
+
+  var defaultStyle = "svg * {\n  stroke-width:var(--crease-width);\n  stroke-linecap:round;\n  stroke:black;\n}\npolygon {fill:none; stroke:none; stroke-linejoin:bevel;}\n.boundary {fill:white; stroke:black;}\n.mark {stroke:#aaa;}\n.mountain {stroke:#f00;}\n.valley{\n  stroke:#00f;\n  stroke-dasharray:calc(var(--crease-width)*2) calc(var(--crease-width)*2);\n}\n.foldedForm .boundary {fill:none;stroke:none;}\n.foldedForm .faces polygon { stroke:black; }\n.foldedForm .faces .front { fill:#fff; }\n.foldedForm .faces .back { fill:#ddd; }\n.foldedForm .creases line { stroke:none; }\n";
+
+  function vkXML$2 (text, step) {
+    const ar = text.replace(/>\s{0,}</g, "><")
+      .replace(/</g, "~::~<")
+      .replace(/\s*xmlns\:/g, "~::~xmlns:")
+      .split("~::~");
+    const len = ar.length;
+    let inComment = false;
+    let deep = 0;
+    let str = "";
+    const space = (step != null && typeof step === "string" ? step : "\t");
+    const shift = ["\n"];
+    for (let si = 0; si < 100; si += 1) {
+      shift.push(shift[si] + space);
+    }
+    for (let ix = 0; ix < len; ix += 1) {
+      if (ar[ix].search(/<!/) > -1) {
+        str += shift[deep] + ar[ix];
+        inComment = true;
+        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
+          || ar[ix].search(/!DOCTYPE/) > -1) {
+          inComment = false;
+        }
+      } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
+        str += ar[ix];
+        inComment = false;
+      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix])
+        && /^<[\w:\-\.\,]+/.exec(ar[ix - 1])
+        == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
+        str += ar[ix];
+        if (!inComment) { deep -= 1; }
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1
+        && ar[ix].search(/\/>/) === -1) {
+        str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
+        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\//) > -1) {
+        str = !inComment ? str += shift[--deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/\/>/) > -1) {
+        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\?/) > -1) {
+        str += shift[deep] + ar[ix];
+      } else if (ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1) {
+        str += shift[deep] + ar[ix];
+      } else {
+        str += ar[ix];
+      }
+    }
+    return (str[0] === "\n") ? str.slice(1) : str;
+  }
+
+  let DOMParser$2 = (typeof window === "undefined" || window === null)
+    ? undefined
+    : window.DOMParser;
+  if (typeof DOMParser$2 === "undefined" || DOMParser$2 === null) {
+    DOMParser$2 = require("xmldom").DOMParser;
+  }
+  let XMLSerializer$2 = (typeof window === "undefined" || window === null)
+    ? undefined
+    : window.XMLSerializer;
+  if (typeof XMLSerializer$2 === "undefined" || XMLSerializer$2 === null) {
+    XMLSerializer$2 = require("xmldom").XMLSerializer;
+  }
+  let document$2 = (typeof window === "undefined" || window === null)
+    ? undefined
+    : window.document;
+  if (typeof document$2 === "undefined" || document$2 === null) {
+    document$2 = new DOMParser$2()
+      .parseFromString("<!DOCTYPE html><title>a</title>", "text/html");
+  }
+
+  const svgNS$3 = "http://www.w3.org/2000/svg";
+  const shadowFilter = function (id_name = "shadow") {
+    const defs = document$2.createElementNS(svgNS$3, "defs");
+    const filter = document$2.createElementNS(svgNS$3, "filter");
+    filter.setAttribute("width", "200%");
+    filter.setAttribute("height", "200%");
+    filter.setAttribute("id", id_name);
+    const blur = document$2.createElementNS(svgNS$3, "feGaussianBlur");
+    blur.setAttribute("in", "SourceAlpha");
+    blur.setAttribute("stdDeviation", "0.005");
+    blur.setAttribute("result", "blur");
+    const offset = document$2.createElementNS(svgNS$3, "feOffset");
+    offset.setAttribute("in", "blur");
+    offset.setAttribute("result", "offsetBlur");
+    const flood = document$2.createElementNS(svgNS$3, "feFlood");
+    flood.setAttribute("flood-color", "#000");
+    flood.setAttribute("flood-opacity", "0.3");
+    flood.setAttribute("result", "offsetColor");
+    const composite = document$2.createElementNS(svgNS$3, "feComposite");
+    composite.setAttribute("in", "offsetColor");
+    composite.setAttribute("in2", "offsetBlur");
+    composite.setAttribute("operator", "in");
+    composite.setAttribute("result", "offsetBlur");
+    const merge = document$2.createElementNS(svgNS$3, "feMerge");
+    const mergeNode1 = document$2.createElementNS(svgNS$3, "feMergeNode");
+    const mergeNode2 = document$2.createElementNS(svgNS$3, "feMergeNode");
+    mergeNode2.setAttribute("in", "SourceGraphic");
+    merge.appendChild(mergeNode1);
+    merge.appendChild(mergeNode2);
+    defs.appendChild(filter);
+    filter.appendChild(blur);
+    filter.appendChild(offset);
+    filter.appendChild(flood);
+    filter.appendChild(composite);
+    filter.appendChild(merge);
+    return defs;
+  };
+
+  function renderDiagrams (graph, renderGroup) {
     if (graph["re:diagrams"] === undefined) { return; }
     if (graph["re:diagrams"].length === 0) { return; }
     Array.from(graph["re:diagrams"]).forEach((instruction) => {
@@ -2026,6 +2021,13 @@
         });
       }
       if ("re:diagram_arrows" in instruction === true) {
+        const r = bounding_rect(graph);
+        const vmin = r[2] > r[3] ? r[3] : r[2];
+        const prefs = {
+          length: vmin * 0.09,
+          width: vmin * 0.035,
+          strokeWidth: vmin * 0.02,
+        };
         instruction["re:diagram_arrows"].forEach((arrowInst) => {
           if (arrowInst["re:diagram_arrow_coords"].length === 2) {
             const p = arrowInst["re:diagram_arrow_coords"];
@@ -2040,14 +2042,22 @@
                 ? p[0][1] > 0.5
                 : p[0][1] < 0.5;
             }
-            const arrow = arcArrow(p[0], p[1], { side });
+            prefs.side = side;
+            const arrow = arcArrow(p[0], p[1], prefs);
             renderGroup.appendChild(arrow);
           }
         });
       }
     });
+  }
+
+  const DISPLAY_NAME = {
+    vertices: "vertices",
+    edges: "creases",
+    faces: "faces",
+    boundaries: "boundaries",
   };
-  const fold_to_svg = function (fold, options = {}) {
+  function fold_to_svg (fold, options = {}) {
     const _svg = svg$1();
     let graph = fold;
     const groups = {
@@ -2093,7 +2103,7 @@
     if ("re:diagrams" in graph) {
       const instructionLayer = group();
       _svg.appendChild(instructionLayer);
-      renderInstructions(graph, instructionLayer);
+      renderDiagrams(graph, instructionLayer);
     }
     if (o.shadows) {
       const shadow_id = "face_shadow";
@@ -2113,19 +2123,12 @@
     const cdata = docu.createCDATASection(innerStyle);
     styleElement.appendChild(cdata);
     const stringified = (new XMLSerializer$2()).serializeToString(_svg);
-    const beautified = vkXML$1(stringified);
+    const beautified = vkXML$2(stringified);
     return beautified;
-  };
+  }
 
-  const core = {
-    svgBoundaries,
-    svgVertices,
-    svgEdges,
-    svgFacesVertices,
-    svgFacesEdges,
-  };
   const convert = {
-    core,
+    components,
     toSVG: (input, options) => {
       if (typeof input === "object" && input !== null) {
         return fold_to_svg(input, options);
