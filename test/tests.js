@@ -38,3 +38,16 @@ fs.readFile("./test/crane.fold", (err, data) => {
     });
   });
 });
+
+fs.readFile("./test/diagram.fold", (err, data) => {
+  const diagram = JSON.parse(data);
+  // const frame0 = FOLD_SVG.toSVG(diagram);
+  const frame1 = FOLD_SVG.toSVG(diagram, { frame: 1, shadows: true, padding: 0.1 });
+  // [frame0, frame1]
+  [frame1].forEach((frame, i) => {
+    fs.writeFile(`./test/test-diagram-${i}.svg`, frame, (err2) => {
+      if (err2) { throw err2; }
+      console.log(`FOLD -> SVG result at test-diagram-${i}.svg`);
+    });
+  });
+});

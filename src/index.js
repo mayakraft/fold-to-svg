@@ -3,25 +3,28 @@ import {
   svg_to_fold,
 } from "./toFOLD";
 
-import {
-  fold_to_svg,
-  svgBoundaries,
-  svgVertices,
-  svgEdges,
-  svgFacesVertices,
-  svgFacesEdges,
-} from "./toSVG";
+// FOLD to SVG
+import components from "./toSVG/components";
+import fold_to_svg from "./toSVG/render";
 
-const core = {
-  svgBoundaries,
-  svgVertices,
-  svgEdges,
-  svgFacesVertices,
-  svgFacesEdges,
-};
+// import {
+//   svgBoundaries,
+//   svgVertices,
+//   svgEdges,
+//   svgFacesVertices,
+//   svgFacesEdges,
+// } from "./toSVG";
+
+// const core = {
+//   svgBoundaries,
+//   svgVertices,
+//   svgEdges,
+//   svgFacesVertices,
+//   svgFacesEdges,
+// };
 
 const convert = {
-  core,
+  components,
   toSVG: (input, options) => {
     if (typeof input === "object" && input !== null) {
       return fold_to_svg(input, options);
