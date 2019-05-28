@@ -8,8 +8,8 @@ module.exports = {
 	output: {
 		name: "fold_svg",
 		file: "fold-svg.js",
-		// format: "umd",
-		format: "es",
+		format: "umd",
+		// format: "es",
 		banner: "/* (c) Robby Kraft, MIT License */",
 	},
 	plugins: [

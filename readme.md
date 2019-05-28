@@ -1,10 +1,12 @@
 # FOLD ↔︎ SVG
 
+[![Build Status](https://travis-ci.org/robbykraft/FOLD_SVG.svg?branch=master)](https://travis-ci.org/robbykraft/FOLD_SVG)
+
 convert [FOLD](https://github.com/edemaine/fold) file format into SVG, and back.
 
 ## FOLD → SVG
 
-- [x] complete. currently testing
+- [x] done. testing
 
 ```
 FOLD_SVG.toSVG(foldObject);
