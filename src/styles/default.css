@@ -1,4 +1,3 @@
-const style = `
 svg * {
   stroke-width:var(--crease-width);
   stroke-linecap:round;
@@ -6,16 +5,14 @@ svg * {
 }
 polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 .boundary {fill:white; stroke:black;}
-.mark {stroke:#AAA;}
-.mountain {stroke:#00F;}
+.mark {stroke:#aaa;}
+.mountain {stroke:#f00;}
 .valley{
-  stroke:#F00;
+  stroke:#00f;
   stroke-dasharray:calc(var(--crease-width)*2) calc(var(--crease-width)*2);
 }
 .foldedForm .boundary {fill:none;stroke:none;}
-.foldedForm .faces polygon { stroke:#000; }
-.foldedForm .faces .front { fill:#FFF; }
-.foldedForm .faces .back { fill:#DDD; }
-.foldedForm .creases line { stroke:none; }`;
-
-export default style;
+.foldedForm .faces polygon { stroke:black; }
+.foldedForm .faces .front { fill:#fff; }
+.foldedForm .faces .back { fill:#ddd; }
+.foldedForm .creases line { stroke:none; }
