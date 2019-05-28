@@ -9,7 +9,8 @@
 	"author": "Robby Kraft",
 	"license": "MIT",
 	"dependencies": {
+		"npm": "^6.9.0",
 		"xmldom": "^0.1.27"
 	},
-	"devDependencies": { }
+	"devDependencies": {}
 }

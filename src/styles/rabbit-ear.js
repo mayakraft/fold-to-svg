@@ -14,8 +14,8 @@ polygon {fill:none; stroke:none; stroke-linejoin:bevel;}
 }
 .foldedForm .boundary polygon {fill:none;stroke:none;}
 .foldedForm .faces polygon { stroke:#000; }
-.foldedForm .faces .front { fill:peru; }
-.foldedForm .faces .back { fill:linen; }
+.foldedForm .faces .front { fill:linen; }
+.foldedForm .faces .back { fill:peru; }
 .foldedForm .creases line { stroke:none; }`;
 
 export default style;

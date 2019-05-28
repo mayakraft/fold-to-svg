@@ -1,4 +1,4 @@
-import minify from "rollup-plugin-babel-minify";
+// import minify from "rollup-plugin-babel-minify";
 // import json from "rollup-plugin-json";
 import string from "rollup-plugin-string";
 import cleanup from "rollup-plugin-cleanup";
@@ -8,8 +8,8 @@ module.exports = {
 	output: {
 		name: "fold_svg",
 		file: "fold-svg.js",
-		// format: "umd",
-		format: "es",
+		format: "umd",
+		// format: "es",
 		banner: "/* (c) Robby Kraft, MIT License */",
 	},
 	plugins: [
