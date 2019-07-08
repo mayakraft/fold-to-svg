@@ -12,6 +12,7 @@ module.exports = {
     banner: "/* (c) Robby Kraft, MIT License */",
   },
   plugins: [
+    // minify(),
     cleanup({
       comments: "none",
       maxEmptyLines: 0,

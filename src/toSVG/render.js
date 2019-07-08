@@ -60,10 +60,11 @@ const DISPLAY_NAME = {
 };
 
 /**
+ * options are, generally, to draw everything possible.
  * specify a frame number otherwise it will render the top level
+ * draw
  */
-export default function (fold, options = {}) {
-  const _svg = svg();
+const fold_to_svg = function (fold, options = {}) {
   let graph = fold;
   const groups = {
     boundaries: true,
@@ -72,30 +73,36 @@ export default function (fold, options = {}) {
     vertices: false,
   };
   const o = {
-    width: options.width || "500px",
-    height: options.height || "500px",
-    style: options.style || true,
-    stylesheet: options.stylesheet || defaultStyle,
-    shadows: options.shadows || false,
-    padding: options.padding || 0,
+    defaults: true,
+    width: "500px",
+    height: "500px",
+    inlineStyle: true,
+    stylesheet: defaultStyle,
+    shadows: false,
+    padding: 0,
+    viewBox: null, // viewBox is four numbers in an array. x y w h
   };
-  if (options != null && options.frame != null) {
-    graph = flatten_frame(fold, options.frame);
+  Object.assign(o, options);
+  if (o.frame != null) {
+    graph = flatten_frame(fold, o.frame);
+  }
+  if (o.svg == null) {
+    o.svg = svg();
   }
   // copy file/frame classes to top level
   const file_classes = (graph.file_classes != null
     ? graph.file_classes : []).join(" ");
-  const frame_classes = graph.frame_classes != null
-    ? graph.frame_classes : [].join(" ");
+  const frame_classes = (graph.frame_classes != null
+    ? graph.frame_classes : []).join(" ");
   const top_level_classes = [file_classes, frame_classes]
     .filter(s => s !== "")
     .join(" ");
-  _svg.setAttribute("class", top_level_classes);
-  _svg.setAttribute("width", o.width);
-  _svg.setAttribute("height", o.height);
+  o.svg.setAttribute("class", top_level_classes);
+  o.svg.setAttribute("width", o.width);
+  o.svg.setAttribute("height", o.height);
 
   const styleElement = style();
-  _svg.appendChild(styleElement);
+  o.svg.appendChild(styleElement);
 
   Object.keys(groups)
     .filter(key => groups[key] === false)
@@ -103,7 +110,7 @@ export default function (fold, options = {}) {
   Object.keys(groups).forEach((key) => {
     groups[key] = group();
     groups[key].setAttribute("class", DISPLAY_NAME[key]);
-    _svg.appendChild(groups[key]);
+    o.svg.appendChild(groups[key]);
   });
 
   // draw geometry into groups
@@ -113,34 +120,39 @@ export default function (fold, options = {}) {
 
   if ("re:diagrams" in graph) {
     const instructionLayer = group();
-    _svg.appendChild(instructionLayer);
+    o.svg.appendChild(instructionLayer);
     renderDiagrams(graph, instructionLayer);
   }
 
   if (o.shadows) {
     const shadow_id = "face_shadow";
     const filter = shadowFilter(shadow_id);
-    _svg.appendChild(filter);
+    o.svg.appendChild(filter);
     Array.from(groups.faces.childNodes)
       .forEach(f => f.setAttribute("filter", `url(#${shadow_id})`));
   }
 
   const rect = bounding_rect(graph);
-  setViewBox(_svg, ...rect, o.padding);
+  if (o.viewBox != null) {
+    setViewBox(o.svg, ...o.viewBox, o.padding);
+  } else {
+    setViewBox(o.svg, ...rect, o.padding);
+  }
 
   // fill CSS style with --crease-width, and custom or a default style
-  const vmin = rect[2] > rect[3] ? rect[3] : rect[2];
-  const innerStyle = (o.style
-    ? `\nsvg { --crease-width: ${vmin * 0.005}; }\n${o.stylesheet}`
-    : `\nsvg { --crease-width: ${vmin * 0.005}; }\n`);
+  if (o.inlineStyle) {
+    const vmin = rect[2] > rect[3] ? rect[3] : rect[2];
+    const innerStyle = `\nsvg { --crease-width: ${vmin * 0.005}; }\n${o.stylesheet}`;
+    // wrap style in CDATA section
+    const docu = (new DOMParser())
+      .parseFromString("<xml></xml>", "application/xml");
+    const cdata = docu.createCDATASection(innerStyle);
+    styleElement.appendChild(cdata);
+  }
 
-  // wrap style in CDATA section
-  const docu = (new DOMParser())
-    .parseFromString("<xml></xml>", "application/xml");
-  const cdata = docu.createCDATASection(innerStyle);
-  styleElement.appendChild(cdata);
-
-  const stringified = (new XMLSerializer()).serializeToString(_svg);
+  const stringified = (new XMLSerializer()).serializeToString(o.svg);
   const beautified = vkXML(stringified);
   return beautified;
-}
+};
+
+export default fold_to_svg;

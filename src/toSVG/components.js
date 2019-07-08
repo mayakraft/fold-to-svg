@@ -5,8 +5,8 @@ import {
 } from "../../include/svg";
 
 import {
-  get_boundary_vertices,
-  faces_matrix_coloring,
+  get_boundary,
+  faces_coloring_from_faces_matrix,
   faces_coloring,
 } from "../graph";
 
@@ -29,7 +29,7 @@ const make_faces_sidedness = function (graph) {
   let coloring = graph["faces_re:coloring"];
   if (coloring == null) {
     coloring = ("faces_re:matrix" in graph)
-      ? faces_matrix_coloring(graph["faces_re:matrix"])
+      ? faces_coloring_from_faces_matrix(graph["faces_re:matrix"])
       : faces_coloring(graph, 0);
     // replace this with a face-vertex-winding-order calculator
   }
@@ -57,20 +57,21 @@ const make_edge_assignment_names = function (graph) {
     : graph.edges_assignment.map(a => CREASE_NAMES[a]));
 };
 
-export const svgBoundaries = function (graph) {
+const svgBoundaries = function (graph) {
   // todo this needs to be able to handle multiple boundaries
   if ("edges_vertices" in graph === false
     || "vertices_coords" in graph === false) {
     return [];
   }
-  const boundary = get_boundary_vertices(graph)
+  const boundary = get_boundary(graph)
+    .vertices
     .map(v => graph.vertices_coords[v]);
   const p = polygon(boundary);
   p.setAttribute("class", "boundary");
   return [p];
 };
 
-export const svgVertices = function (graph, options) {
+const svgVertices = function (graph, options) {
   if ("vertices_coords" in graph === false) {
     return [];
   }
@@ -81,7 +82,7 @@ export const svgVertices = function (graph, options) {
   return svg_vertices;
 };
 
-export const svgEdges = function (graph) {
+const svgEdges = function (graph) {
   if ("edges_vertices" in graph === false
     || "vertices_coords" in graph === false) {
     return [];
@@ -95,7 +96,7 @@ export const svgEdges = function (graph) {
   return svg_edges;
 };
 
-export const svgFacesVertices = function (graph) {
+const svgFacesVertices = function (graph) {
   if ("faces_vertices" in graph === false
     || "vertices_coords" in graph === false) {
     return [];
@@ -107,7 +108,7 @@ export const svgFacesVertices = function (graph) {
   return finalize_faces(graph, svg_faces);
 };
 
-export const svgFacesEdges = function (graph) {
+const svgFacesEdges = function (graph) {
   if ("faces_edges" in graph === false
     || "edges_vertices" in graph === false
     || "vertices_coords" in graph === false) {
