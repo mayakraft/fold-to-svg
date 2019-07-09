@@ -1,14 +1,15 @@
-import {
-  polygon,
-  circle,
-  line,
-} from "../../include/svg";
 
 import {
   get_boundary,
   faces_coloring_from_faces_matrix,
   faces_coloring,
 } from "../graph";
+
+import {
+  line,
+  circle,
+  polygon,
+} from "./svg";
 
 const CREASE_NAMES = {
   B: "boundary", b: "boundary",
@@ -57,7 +58,7 @@ const make_edge_assignment_names = function (graph) {
     : graph.edges_assignment.map(a => CREASE_NAMES[a]));
 };
 
-const svgBoundaries = function (graph) {
+export const svgBoundaries = function (graph) {
   // todo this needs to be able to handle multiple boundaries
   if ("edges_vertices" in graph === false
     || "vertices_coords" in graph === false) {
@@ -71,7 +72,7 @@ const svgBoundaries = function (graph) {
   return [p];
 };
 
-const svgVertices = function (graph, options) {
+export const svgVertices = function (graph, options) {
   if ("vertices_coords" in graph === false) {
     return [];
   }
@@ -82,7 +83,7 @@ const svgVertices = function (graph, options) {
   return svg_vertices;
 };
 
-const svgEdges = function (graph) {
+export const svgEdges = function (graph) {
   if ("edges_vertices" in graph === false
     || "vertices_coords" in graph === false) {
     return [];
@@ -96,7 +97,7 @@ const svgEdges = function (graph) {
   return svg_edges;
 };
 
-const svgFacesVertices = function (graph) {
+export const svgFacesVertices = function (graph) {
   if ("faces_vertices" in graph === false
     || "vertices_coords" in graph === false) {
     return [];
@@ -108,7 +109,7 @@ const svgFacesVertices = function (graph) {
   return finalize_faces(graph, svg_faces);
 };
 
-const svgFacesEdges = function (graph) {
+export const svgFacesEdges = function (graph) {
   if ("faces_edges" in graph === false
     || "edges_vertices" in graph === false
     || "vertices_coords" in graph === false) {
@@ -124,21 +125,4 @@ const svgFacesEdges = function (graph) {
     .map(face => polygon(face));
   svg_faces.forEach((face, i) => face.setAttribute("id", `${i}`));
   return finalize_faces(graph, svg_faces);
-};
-
-const svgFaces = function (graph) {
-  if ("faces_vertices" in graph === true) {
-    return svgFacesVertices(graph);
-  }
-  if ("faces_edges" in graph === true) {
-    return svgFacesEdges(graph);
-  }
-  return [];
-};
-
-export default {
-  vertices: svgVertices,
-  edges: svgEdges,
-  faces: svgFaces,
-  boundaries: svgBoundaries,
 };

@@ -1,5 +1,6 @@
-import { document } from "./window";
+import window from "../environment/window";
 
+const { document } = window;
 const svgNS = "http://www.w3.org/2000/svg";
 
 const shadowFilter = function (id_name = "shadow") {

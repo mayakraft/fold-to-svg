@@ -4,7 +4,7 @@ import {
 } from "./toFOLD";
 
 // FOLD to SVG
-import components from "./toSVG/components";
+import * as components from "./toSVG/components";
 import fold_to_svg from "./toSVG/render";
 
 // import {
@@ -39,16 +39,16 @@ const convert = {
     }
     return "";
   },
-  toFOLD: (input, options) => {
-    if (typeof input === "string") {
-      const svg = (new DOMParser())
-        .parseFromString(input, "text/xml").documentElement;
-      return svg_to_fold(svg, options);
-    }
-    // if (input instanceof Document) {
-    return svg_to_fold(input, options);
-    // let fold = svg_to_fold(result, options);
-  },
+  // toFOLD: (input, options) => {
+  //   if (typeof input === "string") {
+  //     const svg = (new DOMParser())
+  //       .parseFromString(input, "text/xml").documentElement;
+  //     return svg_to_fold(svg, options);
+  //   }
+  //   // if (input instanceof Document) {
+  //   return svg_to_fold(input, options);
+  //   // let fold = svg_to_fold(result, options);
+  // },
 };
 
 export default convert;

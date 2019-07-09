@@ -8,7 +8,9 @@
  * callback(svg, error). includes error parameter if error exists
  */
 
-import { DOMParser } from "./window";
+import window from "./environment/window";
+
+const { DOMParser } = window;
 
 export const load_SVG = function (input, callback) {
   if (input instanceof Document) {

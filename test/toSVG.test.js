@@ -2,10 +2,20 @@ const fs = require("fs");
 // const { test, expect } = require("jest");
 const fold_svg = require("../fold-svg");
 
+test("invalid json", () => {
+  try {
+    fold_svg.toSVG("{\"key\": invalid json}");
+    // invalid json should throw an error
+  } catch (error) {
+    // success. invalid json caught
+    expect(error).not.toBe(null);
+  }
+});
+
 test("boundary points", () => {
   fs.readFile("./test/examples/single-vertex.fold", (err, data) => {
     const singleVertex = JSON.parse(data);
-    const boundaries = fold_svg.components.boundaries(singleVertex);
+    const boundaries = fold_svg.components.svgBoundaries(singleVertex);
     expect(boundaries.length).toBe(1);
     expect(boundaries[0].tagName).toBe("polygon");
     const boundaryPoints = boundaries[0].getAttribute("points")

@@ -1,13 +1,6 @@
 const fs = require("fs");
 const FOLD_SVG = require("../fold-svg");
 
-try {
-  FOLD_SVG.toSVG("{\"key\": invalid json}");
-  console.log("test failed! invalid json should throw an error");
-} catch (error) {
-  // success. invalid json caught
-}
-
 fs.readFile("./test/examples/single-vertex.fold", (err, data) => {
   const singleVertex = JSON.parse(data);
   const frame0 = FOLD_SVG.toSVG(singleVertex);
@@ -41,13 +34,9 @@ fs.readFile("./test/examples/crane.fold", (err, data) => {
 
 fs.readFile("./test/examples/diagram.fold", (err, data) => {
   const diagram = JSON.parse(data);
-  // const frame0 = FOLD_SVG.toSVG(diagram);
-  const frame1 = FOLD_SVG.toSVG(diagram, { frame: 1, shadows: true, padding: 0.1 });
-  // [frame0, frame1]
-  [frame1].forEach((frame, i) => {
-    fs.writeFile(`./test/output/test-diagram-${i}.svg`, frame, (err2) => {
-      if (err2) { throw err2; }
-      console.log(`FOLD -> SVG result at output/test-diagram-${i}.svg`);
-    });
+  const svg = FOLD_SVG.toSVG(diagram, { frame: 1, shadows: true, padding: 0.1 });
+  fs.writeFile("./test/output/test-diagram.svg", svg, (err2) => {
+    if (err2) { throw err2; }
+    console.log("FOLD -> SVG result at output/test-diagram.svg");
   });
 });
