@@ -1,22 +1,33 @@
 {
-	"name": "fold-svg",
-	"version": "0.1.0",
-	"description": "convert a FOLD file into an SVG, and back. more info on the FOLD file format at https://github.com/edemaine/fold",
-	"main": "fold-svg.js",
-	"scripts": {
-		"test": "node test/tests.js"
-	},
-	"author": "Robby Kraft",
-	"license": "MIT",
-	"dependencies": {
-		"npm": "^6.9.0",
-		"xmldom": "^0.1.27"
-	},
-	"devDependencies": {
-		"rollup-plugin-cleanup": "^3.1.1",
-		"rollup-plugin-string": "^3.0.0",
-		"eslint": "^5.16.0",
-		"eslint-config-airbnb-base": "^13.1.0",
-		"eslint-plugin-import": "^2.17.3"
-	}
+  "name": "fold-svg",
+  "version": "0.1.0",
+  "description": "convert a FOLD file into an SVG, and back. more info on the FOLD file format at https://github.com/edemaine/fold",
+  "main": "fold-svg.js",
+  "scripts": {
+    "simple": "node test/simple.js",
+    "export": "node test/export.js",
+    "test": "jest"
+  },
+  "author": "Robby Kraft",
+  "license": "MIT",
+  "repository": "https://github.com/robbykraft/FOLD_SVG",
+  "keywords": [
+    "origami",
+    "convert",
+    "fold",
+    "svg",
+    "format"
+  ],
+  "dependencies": {
+    "xmldom": "^0.1.27"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.17.3",
+    "jest": "^24.8.0",
+    "rollup": "^1.12.4",
+    "rollup-plugin-cleanup": "^3.1.1",
+    "rollup-plugin-string": "^3.0.0"
+  }
 }

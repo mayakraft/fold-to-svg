@@ -1,14 +1,15 @@
-import {
-  polygon,
-  circle,
-  line,
-} from "../../include/svg";
 
 import {
-  get_boundary_vertices,
-  faces_matrix_coloring,
+  get_boundary,
+  faces_coloring_from_faces_matrix,
   faces_coloring,
 } from "../graph";
+
+import {
+  line,
+  circle,
+  polygon,
+} from "./svg";
 
 const CREASE_NAMES = {
   B: "boundary", b: "boundary",
@@ -29,7 +30,7 @@ const make_faces_sidedness = function (graph) {
   let coloring = graph["faces_re:coloring"];
   if (coloring == null) {
     coloring = ("faces_re:matrix" in graph)
-      ? faces_matrix_coloring(graph["faces_re:matrix"])
+      ? faces_coloring_from_faces_matrix(graph["faces_re:matrix"])
       : faces_coloring(graph, 0);
     // replace this with a face-vertex-winding-order calculator
   }
@@ -63,7 +64,8 @@ export const svgBoundaries = function (graph) {
     || "vertices_coords" in graph === false) {
     return [];
   }
-  const boundary = get_boundary_vertices(graph)
+  const boundary = get_boundary(graph)
+    .vertices
     .map(v => graph.vertices_coords[v]);
   const p = polygon(boundary);
   p.setAttribute("class", "boundary");
@@ -123,21 +125,4 @@ export const svgFacesEdges = function (graph) {
     .map(face => polygon(face));
   svg_faces.forEach((face, i) => face.setAttribute("id", `${i}`));
   return finalize_faces(graph, svg_faces);
-};
-
-const svgFaces = function (graph) {
-  if ("faces_vertices" in graph === true) {
-    return svgFacesVertices(graph);
-  }
-  if ("faces_edges" in graph === true) {
-    return svgFacesEdges(graph);
-  }
-  return [];
-};
-
-export default {
-  vertices: svgVertices,
-  edges: svgEdges,
-  faces: svgFaces,
-  boundaries: svgBoundaries,
 };
