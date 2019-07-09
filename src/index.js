@@ -1,7 +1,7 @@
 // import * as Import from "./import";
-import {
-  svg_to_fold,
-} from "./toFOLD";
+// import {
+//   svg_to_fold,
+// } from "./toFOLD";
 
 // FOLD to SVG
 import * as components from "./toSVG/components";
