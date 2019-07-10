@@ -1,8 +1,8 @@
 {
-  "name": "fold-svg",
+  "name": "fold-draw",
   "version": "0.1.0",
-  "description": "convert a FOLD file into an SVG, and back. more info on the FOLD file format at https://github.com/edemaine/fold",
-  "main": "fold-svg.js",
+  "description": "convert a FOLD file into SVG, WebGL",
+  "main": "fold-draw.js",
   "scripts": {
     "simple": "node test/simple.js",
     "export": "node test/export.js",
@@ -10,7 +10,7 @@
   },
   "author": "Robby Kraft",
   "license": "MIT",
-  "repository": "https://github.com/robbykraft/FOLD_SVG",
+  "repository": "https://github.com/robbykraft/fold-draw",
   "keywords": [
     "origami",
     "convert",

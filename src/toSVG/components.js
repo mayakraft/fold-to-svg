@@ -1,4 +1,3 @@
-
 import {
   get_boundary,
   faces_coloring_from_faces_matrix,
@@ -12,12 +11,17 @@ import {
 } from "./svg";
 
 const CREASE_NAMES = {
-  B: "boundary", b: "boundary",
-  M: "mountain", m: "mountain",
-  V: "valley",   v: "valley",
-  F: "mark",     f: "mark",
-  U: "mark",     u: "mark",
-}; // easy to remember: "fuck you, mark"
+  B: "boundary",
+  b: "boundary",
+  M: "mountain",
+  m: "mountain",
+  V: "valley",
+  v: "valley",
+  F: "mark",
+  f: "mark",
+  U: "mark",
+  u: "mark",
+};
 
 const faces_sorted_by_layer = function (faces_layer) {
   return faces_layer.map((layer, i) => ({ layer, i }))
