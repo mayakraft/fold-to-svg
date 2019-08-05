@@ -44,6 +44,7 @@ const drawFOLD = {
       boundaries: svgBoundaries,
       vertices: svgVertices,
       edges: svgEdges,
+      faces: svgFacesVertices,
       faces_vertices: svgFacesVertices,
       faces_edges: svgFacesEdges,
     },

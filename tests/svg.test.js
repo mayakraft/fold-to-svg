@@ -1,5 +1,4 @@
 const fs = require("fs");
-// const { test, expect } = require("jest");
 const drawFOLD = require("../fold-draw");
 
 test("invalid json", () => {
@@ -13,7 +12,7 @@ test("invalid json", () => {
 });
 
 test("boundary points", () => {
-  fs.readFile("./test/examples/single-vertex.fold", (err, data) => {
+  fs.readFile("./tests/examples/single-vertex.fold", (err, data) => {
     const singleVertex = JSON.parse(data);
     const boundaries = drawFOLD.components.svg.boundaries(singleVertex);
     expect(boundaries.length).toBe(1);
@@ -27,7 +26,7 @@ test("boundary points", () => {
     // const frame0 = drawFOLD.svg(singleVertex);
     // const frame1 = drawFOLD.svg(singleVertex, { frame: 1, shadows: true, padding: 0.1 });
     // [frame0, frame1].forEach((frame, i) => {
-    //   fs.writeFile(`./test/output/test-frame-${i}.svg`, frame, (err2) => {
+    //   fs.writeFile(`./tests/output/test-frame-${i}.svg`, frame, (err2) => {
     //     if (err2) { throw err2; }
     //     console.log(`FOLD -> SVG result at output/test-frame-${i}.svg`);
     //   });
