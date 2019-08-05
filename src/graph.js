@@ -32,6 +32,7 @@ export const get_boundary = function (graph) {
     edgeIndex = vertices_edges[nextVertex]
       .filter(v => edges_vertices_b[v])
       .shift();
+    if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
     if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
       [, nextVertex] = graph.edges_vertices[edgeIndex];
     } else {

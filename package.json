@@ -1,11 +1,9 @@
 {
   "name": "fold-draw",
   "version": "0.1.0",
-  "description": "convert a FOLD file into SVG, WebGL",
+  "description": "convert a FOLD file into SVG (todo: WebGL)",
   "main": "fold-draw.js",
   "scripts": {
-    "simple": "node test/simple.js",
-    "export": "node test/export.js",
     "test": "jest"
   },
   "author": "Robby Kraft",

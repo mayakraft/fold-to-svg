@@ -89,6 +89,10 @@ const all_classes = function (graph) {
     .join(" ");
 };
 
+const clean_number = function (num, places = 14) {
+  return parseFloat(num.toFixed(places));
+};
+
 /**
  * options are, generally, to draw everything possible.
  * specify a frame number otherwise it will render the top level
@@ -96,6 +100,13 @@ const all_classes = function (graph) {
  */
 const fold_to_svg = function (fold, options = {}) {
   let graph = fold;
+  // clean vertices, back up original values
+  if (graph.vertices_coords != null) {
+    graph.vertices_coordsPreClean = graph.vertices_coords;
+    graph.vertices_coords = JSON.parse(JSON.stringify(graph.vertices_coords))
+      .map(v => v.map(n => clean_number(n)));
+  }
+
   const o = {
     defaults: true,
     width: "500px",
@@ -106,6 +117,7 @@ const fold_to_svg = function (fold, options = {}) {
     padding: 0,
     viewBox: null, // type is an array of 4 numbers: x y w h
     // show / hide components. is visible?
+    diagram: true, // if there is an "re:diagrams" frame, draw it.
     boundaries: true,
     faces: true,
     edges: true,
@@ -139,7 +151,7 @@ const fold_to_svg = function (fold, options = {}) {
       .forEach(a => groups[key].appendChild(a)));
 
   // if exists, draw diagram instructions, arrows
-  if ("re:diagrams" in graph) {
+  if ("re:diagrams" in graph && o.diagram) {
     const instructionLayer = group();
     o.svg.appendChild(instructionLayer);
     renderDiagrams(graph, instructionLayer);
@@ -158,6 +170,11 @@ const fold_to_svg = function (fold, options = {}) {
     setViewBox(o.svg, ...o.viewBox, o.padding);
   } else {
     setViewBox(o.svg, ...rect, o.padding);
+  }
+  // finished with graph
+  if (graph.vertices_coordsPreClean != null) {
+    graph.vertices_coords = graph.vertices_coordsPreClean;
+    delete graph.vertices_coordsPreClean;
   }
 
   // fill CSS style with --crease-width, and custom or a default style

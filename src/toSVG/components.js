@@ -64,8 +64,9 @@ const make_edge_assignment_names = function (graph) {
 
 export const svgBoundaries = function (graph) {
   // todo this needs to be able to handle multiple boundaries
-  if ("edges_vertices" in graph === false
-    || "vertices_coords" in graph === false) {
+  if ("vertices_coords" in graph === false
+    || "edges_vertices" in graph === false
+    || "edges_assignment" in graph === false) {
     return [];
   }
   const boundary = get_boundary(graph)
