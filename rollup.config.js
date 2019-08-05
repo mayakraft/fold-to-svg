@@ -6,7 +6,7 @@ import minify from "rollup-plugin-babel-minify";
 module.exports = [{
   input: "src/index.js",
   output: {
-    name: "drawFOLD",
+    name: "foldDraw",
     file: "fold-draw.js",
     format: "umd",
     // format: "es",
@@ -29,7 +29,7 @@ module.exports = [{
 {
   input: "src/index.js",
   output: {
-    name: "drawFOLD",
+    name: "foldDraw",
     file: "fold-draw.min.js",
     format: "umd",
     // format: "es",

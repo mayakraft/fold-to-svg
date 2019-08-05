@@ -1,32 +1,49 @@
-# FOLD ↔︎ SVG
+# FOLD → SVG
 
-[![Build Status](https://travis-ci.org/robbykraft/FOLD_SVG.svg?branch=master)](https://travis-ci.org/robbykraft/FOLD_SVG)
+[![Build Status](https://travis-ci.org/robbykraft/fold-draw.svg?branch=master)](https://travis-ci.org/robbykraft/fold-draw)
 
-convert [FOLD](https://github.com/edemaine/fold) file format into SVG, and back.
+convert [FOLD](https://github.com/edemaine/fold) file format into SVG. (todo: WebGL)
 
-## FOLD → SVG
+> to convert the other direction, svg into fold: [tofold](https://github.com/robbykraft/tofold/)
 
-- [x] done. testing
-
+```javascript
+foldDraw.svg(foldObject)
 ```
-FOLD_SVG.toSVG(foldObject);
-```
+
 the second argument is an options {} object, includes:
 
 * `stylesheet` CSS stylesheet to be placed in the header. styles the SVG.
 * `frame` render a certain frame in "file_frames", default is the top level
 * `width` width of SVG (not viewport, which is in FOLD coordinate space)
 * `height` height of SVG
+* `inlineStyle` include style header in the svg. default: true
+* `shadows` include shadow effect. default: false
+* `padding` without modifying the viewbox, shrink the fold object in the view. default: 0.
+* `viewBox` type is an array of 4 numbers: x y w h. default null,
+
+show hide these components. true false is it visible?
+
+* `diagram` if there is an "re:diagrams" frame, draw it. default: true
+* `boundaries` default: true
+* `faces` default: true
+* `edges` default: true
+* `vertices` default: false
 
 ```
 let foldedSVG = FOLD_SVG.toSVG(foldObject, {frame:1});
 ```
 
-## SVG → FOLD
+## components
 
-- [ ] in-progress
+access to methods to draw the components individually:
 
-* infer crease type by style. style includes:
-   * inline attributes on drawing primitives
-   * `<style>` header
-   * if a group (layer) is styled, all its children inherit the style
+```javascript
+foldDraw.components.svg.vertices(foldObject)
+```
+
+- boundaries
+- vertices
+- edges
+- faces
+- faces_vertices
+- faces_edges

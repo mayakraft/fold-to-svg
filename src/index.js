@@ -36,7 +36,7 @@ const webGL = function () {
   // empty. todo
 };
 
-const drawFOLD = {
+const foldDraw = {
   svg,
   webGL,
   components: {
@@ -52,4 +52,4 @@ const drawFOLD = {
   },
 };
 
-export default drawFOLD;
+export default foldDraw;

@@ -9,12 +9,12 @@ const singleVertex = {file_spec:1.1,frame_classes:['creasePattern'],vertices_coo
 
 // console.log(JSON.parse(singleVertex));
 
-const singleVertexCPString = drawFOLD.svg(singleVertex);
+const singleVertexCPString = foldDraw.svg(singleVertex);
 const singleVertexCPSVG = new DOMParser()
   .parseFromString(singleVertexCPString, "text/xml").documentElement;
 document.body.appendChild(singleVertexCPSVG);
 
-const singleVertexString = drawFOLD.svg(singleVertex, { frame: 1 });
+const singleVertexString = foldDraw.svg(singleVertex, { frame: 1 });
 const singleVertexSVG = new DOMParser()
   .parseFromString(singleVertexString, "text/xml").documentElement;
 document.body.appendChild(singleVertexSVG);
@@ -25,7 +25,7 @@ document.body.appendChild(singleVertexSVG);
 fetch("examples/crane.fold")
   .then(result => result.text())
   .then((result) => {
-    const svgString = drawFOLD.svg(result);
+    const svgString = foldDraw.svg(result);
     const svg = new DOMParser()
       .parseFromString(svgString, "text/xml").documentElement;
     document.body.appendChild(svg);

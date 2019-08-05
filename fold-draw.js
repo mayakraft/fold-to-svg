@@ -2,7 +2,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global.drawFOLD = factory());
+  (global.foldDraw = factory());
 }(this, (function () { 'use strict';
 
   function _typeof(obj) {
@@ -967,7 +967,7 @@
 
   var webGL = function webGL() {};
 
-  var drawFOLD = {
+  var foldDraw = {
     svg: svg$1,
     webGL: webGL,
     components: {
@@ -983,6 +983,6 @@
     }
   };
 
-  return drawFOLD;
+  return foldDraw;
 
 })));
