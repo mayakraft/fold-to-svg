@@ -19,8 +19,8 @@ const CREASE_NAMES = {
   v: "valley",
   F: "mark",
   f: "mark",
-  U: "mark",
-  u: "mark",
+  U: "unassigned",
+  u: "unassigned",
 };
 
 const faces_sorted_by_layer = function (faces_layer) {

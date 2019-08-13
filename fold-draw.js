@@ -521,8 +521,8 @@
     v: "valley",
     F: "mark",
     f: "mark",
-    U: "mark",
-    u: "mark"
+    U: "unassigned",
+    u: "unassigned"
   };
 
   var faces_sorted_by_layer = function faces_sorted_by_layer(faces_layer) {
@@ -656,7 +656,7 @@
     return finalize_faces(graph, svg_faces);
   };
 
-  var defaultStyle = "svg * {\n  stroke-width: var(--crease-width);\n  stroke-linecap: round;\n  stroke: black;\n}\nline.mountain { stroke: red; }\nline.mark { stroke: lightgray; }\nline.valley { stroke: blue;\n  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);\n}\npolygon { stroke: none; stroke-linejoin: bevel; }\n.foldedForm polygon { stroke: black; fill: #8881; }\n.foldedForm polygon.front { fill: white; }\n.foldedForm polygon.back { fill: lightgray; }\n.creasePattern .boundaries polygon { fill: white; stroke: black; }\n.foldedForm .boundaries polygon { fill: none; stroke: none; }\n.foldedForm line { stroke: none; }\n";
+  var defaultStyle = "svg * {\n  stroke-width: var(--crease-width);\n  stroke-linecap: round;\n  stroke: black;\n}\nline.mountain { stroke: red; }\nline.mark { stroke: lightgray; }\nline.valley { stroke: blue;\n  stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);\n}\npolygon { stroke: none; stroke-linejoin: bevel; }\n.foldedForm polygon { stroke: black; fill: #8881; }\n.foldedForm polygon.front { fill: white; }\n.foldedForm polygon.back { fill: lightgray; }\n.creasePattern polygon { fill: white; stroke: none; }\n.foldedForm .boundaries polygon { fill: none; stroke: none; }\n.foldedForm line { stroke: none; }\n";
 
   function vkXML (text, step) {
     var ar = text.replace(/>\s{0,}</g, "><").replace(/</g, "~::~<").replace(/\s*xmlns\:/g, "~::~xmlns:").split("~::~");
@@ -710,7 +710,6 @@
 
   var document = win.document;
   var svgNS$1 = "http://www.w3.org/2000/svg";
-
   var shadowFilter = function shadowFilter() {
     var id_name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "shadow";
     var defs = document.createElementNS(svgNS$1, "defs");

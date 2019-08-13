@@ -10,7 +10,7 @@ test("convert and export files", () => {
     const frame0 = FOLD_SVG.svg(singleVertex);
     const frame1 = FOLD_SVG.svg(singleVertex, { frame: 1, shadows: true, padding: 0.1 });
     [frame0, frame1].forEach((frame, i) => {
-      fs.writeFile(`./tests/output/test-frame-${i}.svg`, frame, (err2) => {
+      fs.writeFile(`./tests/output/single-vertex-${i}.svg`, frame, (err2) => {
         if (err2) { throw err2; }
         // console.log(`FOLD -> SVG result at output/test-frame-${i}.svg`);
         expect(err2).toBe(null);
@@ -20,7 +20,7 @@ test("convert and export files", () => {
 
   fs.readFile("./tests/examples/crane.fold", (err, data) => {
     const crane1 = FOLD_SVG.svg(JSON.parse(data));
-    fs.writeFile("./tests/output/test-crane1.svg", crane1, (err2) => {
+    fs.writeFile("./tests/output/cp-crane.svg", crane1, (err2) => {
       if (err2) { throw err2; }
       // console.log("FOLD -> SVG result at output/test-crane1.svg");
       expect(err2).toBe(null);
@@ -31,7 +31,7 @@ test("convert and export files", () => {
         padding: 0.02,
       };
       const crane2 = FOLD_SVG.svg(JSON.parse(data), options);
-      fs.writeFile("./tests/output/test-crane2.svg", crane2, (err4) => {
+      fs.writeFile("./tests/output/cp-crane-style.svg", crane2, (err4) => {
         if (err4) { throw err4; }
         // console.log("FOLD -> SVG result at output/test-crane2.svg");
         expect(err4).toBe(null);
@@ -42,7 +42,7 @@ test("convert and export files", () => {
   fs.readFile("./tests/examples/diagram.fold", (err, data) => {
     const diagram = JSON.parse(data);
     const svg = FOLD_SVG.svg(diagram, { frame: 1, shadows: true, padding: 0.1 });
-    fs.writeFile("./tests/output/test-diagram.svg", svg, (err2) => {
+    fs.writeFile("./tests/output/diagram-step.svg", svg, (err2) => {
       if (err2) { throw err2; }
       // console.log("FOLD -> SVG result at output/test-diagram.svg");
       expect(err2).toBe(null);
