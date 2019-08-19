@@ -3,7 +3,7 @@ import window from "../environment/window";
 const { document } = window;
 const svgNS = "http://www.w3.org/2000/svg";
 
-const shadowFilter = function (id_name = "shadow") {
+export const shadowFilter = function (id_name = "shadow") {
   const defs = document.createElementNS(svgNS, "defs");
 
   const filter = document.createElementNS(svgNS, "filter");
@@ -48,7 +48,7 @@ const shadowFilter = function (id_name = "shadow") {
   return defs;
 };
 
-export { shadowFilter };
+export const shhhh = 5;
 
 // export const shadowFilter = function (id_name = "shadow") {
 //  let defs = document.createElementNS(svgNS, "defs");

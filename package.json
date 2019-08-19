@@ -4,7 +4,8 @@
   "description": "convert a FOLD file into SVG (todo: WebGL)",
   "main": "fold-draw.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "clean": "node tests/clean.js"
   },
   "author": "Robby Kraft",
   "license": "MIT",
