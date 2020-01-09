@@ -1,11 +1,11 @@
 import {
   bounding_rect,
-} from "../graph";
+} from "../FOLD/boundary";
 
 import {
   line,
   arcArrow,
-} from "./svg";
+} from "../svg/svg";
 
 export default function (graph, renderGroup) {
   if (graph["re:diagrams"] === undefined) { return; }

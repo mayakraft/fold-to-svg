@@ -3,9 +3,9 @@ svg * {
   stroke-linecap: round;
   stroke: black;
 }
-line.mountain { stroke: red; }
-line.mark { stroke: lightgray; }
-line.valley { stroke: blue;
+.mountain { stroke: red; }
+.mark { stroke: lightgray; }
+.valley { stroke: blue;
   stroke-dasharray: calc(var(--crease-width) * 2) calc(var(--crease-width) * 2);
 }
 polygon { stroke: none; stroke-linejoin: bevel; }
@@ -14,4 +14,4 @@ polygon { stroke: none; stroke-linejoin: bevel; }
 .foldedForm polygon.back { fill: lightgray; }
 .creasePattern polygon { fill: white; stroke: none; }
 .foldedForm .boundaries polygon { fill: none; stroke: none; }
-.foldedForm line { stroke: none; }
+.foldedForm path, .foldedForm line { stroke: none; }

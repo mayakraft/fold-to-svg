@@ -6,8 +6,8 @@ import minify from "rollup-plugin-babel-minify";
 module.exports = [{
   input: "src/index.js",
   output: {
-    name: "foldDraw",
-    file: "fold-draw.js",
+    name: "FoldToSvg",
+    file: "fold-to-svg.js",
     format: "umd",
     // format: "es",
     banner: "/* (c) Robby Kraft, MIT License */",
@@ -29,8 +29,8 @@ module.exports = [{
 {
   input: "src/index.js",
   output: {
-    name: "foldDraw",
-    file: "fold-draw.min.js",
+    name: "FoldToSvg",
+    file: "fold-to-svg.min.js",
     format: "umd",
     // format: "es",
     banner: "/* (c) Robby Kraft, MIT License */",

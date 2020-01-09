@@ -29,31 +29,38 @@ import defaultStyle from "../styles/default.css";
 
 import vkXML from "../../include/vkbeautify-xml";
 
-import { shadowFilter } from "./effects";
+import { shadowFilter } from "../svg/effects";
 
 import renderDiagrams from "./diagrams";
 
+// import {
+//   svgBoundaries,
+//   svgVertices,
+//   svgEdges,
+//   svgFacesVertices,
+//   svgFacesEdges,
+// } from "./components";
+
+
+import { vertices_circle } from "./vertices";
+import { edges_path } from "./edges";
 import {
-  svgBoundaries,
-  svgVertices,
-  svgEdges,
-  svgFacesVertices,
-  svgFacesEdges,
-} from "./components";
+  faces_vertices_polygon,
+  faces_edges_polygon
+} from "./faces";
+import { boundaries_polygon } from "./boundaries";
 
 import window from "../environment/window";
 
-import {
-  bounding_rect,
-  flatten_frame,
-} from "../graph";
+import { bounding_rect } from "../FOLD/boundary";
+import { flatten_frame } from "../FOLD/file_frames";
 
 import {
   svg,
   group,
   style,
   setViewBox,
-} from "./svg";
+} from "../svg/svg";
 
 const DISPLAY_NAME = {
   vertices: "vertices",
@@ -64,20 +71,21 @@ const DISPLAY_NAME = {
 
 const svgFaces = function (graph) {
   if ("faces_vertices" in graph === true) {
-    return svgFacesVertices(graph);
+    return faces_vertices_polygon(graph);
   }
   if ("faces_edges" in graph === true) {
-    return svgFacesEdges(graph);
+    return faces_edges_polygon(graph);
   }
   return [];
 };
 
 const components = {
-  vertices: svgVertices,
-  edges: svgEdges,
+  vertices: vertices_circle,
+  edges: edges_path,
   faces: svgFaces,
-  boundaries: svgBoundaries,
+  boundaries: boundaries_polygon,
 };
+
 
 const all_classes = function (graph) {
   const file_classes = (graph.file_classes != null
