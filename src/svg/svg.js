@@ -1,3 +1,6 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import window from "../environment/window";
 
 const svgNS = "http://www.w3.org/2000/svg";
@@ -9,14 +12,22 @@ export const svg = function () {
   return svgImage;
 };
 
-export const group = function () {
+export const group = function (parent) {
   const g = window.document.createElementNS(svgNS, "g");
+  if (parent) { parent.appendChild(g); }
   return g;
 };
 
-export const style = function () {
+export const defs = function (parent) {
+  const defs = window.document.createElementNS(svgNS, "defs");
+  if (parent) { parent.appendChild(defs); }
+  return defs;
+};
+
+export const style = function (parent) {
   const s = window.document.createElementNS(svgNS, "style");
   s.setAttribute("type", "text/css");
+  if (parent) { parent.appendChild(s); }
   return s;
 };
 
@@ -50,8 +61,10 @@ export const circle = function (x, y, radius) {
 
 export const polygon = function (pointsArray) {
   const shape = window.document.createElementNS(svgNS, "polygon");
-  const pointsString = pointsArray
-    .reduce((a, b) => `${a}${b[0]},${b[1]} `, "");
+  const pointsString = pointsArray.map(p => `${p[0]},${p[1]}`).join(" ");
+    // .reduce((a, b) => `${a}${b[0]},${b[1]} `, "");
+  // const pointsString = pointsArray
+  //   .reduce((a, b) => `${a}${b[0]},${b[1]} `, "");
   shape.setAttributeNS(null, "points", pointsString);
   return shape;
 };

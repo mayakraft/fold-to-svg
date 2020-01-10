@@ -1,3 +1,6 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import { circle } from "../svg/svg";
 
 export const vertices_circle = function (graph, options) {

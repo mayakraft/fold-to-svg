@@ -1,20 +1,13 @@
-// import {
-//   svgBoundaries,
-//   svgVertices,
-//   svgEdges,
-//   svgFacesVertices,
-//   svgFacesEdges,
-// } from "./render/components";
-
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import { vertices_circle } from "./render/vertices";
-
 import {
   edges_path_data,
   edges_by_assignment_paths_data,
   edges_path,
   edges_line
 } from "./render/edges";
-
 import {
   faces_vertices_polygon,
   faces_edges_polygon
@@ -37,7 +30,7 @@ const getObject = function (input) {
       throw error;
     }
   }
-  throw new TypeError("couldn't recognize input. looking for string or object");
+  throw new TypeError("required 'String' or 'Object'");
 };
 
 const FoldToSvg = function (input, options) {

@@ -1,5 +1,6 @@
-// boundary detection, removal, cleanup
-
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import { make_vertices_edges } from "./make";
 
 export const bounding_rect = function ({ vertices_coords }) {

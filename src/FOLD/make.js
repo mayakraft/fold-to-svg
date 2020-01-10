@@ -1,7 +1,7 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import math from "../../include/math";
-
-// export const make_vertices_vertices = function (graph) {
-// };
 
 export const make_vertices_edges = function ({ edges_vertices }) {
   if (!edges_vertices) { return undefined; }

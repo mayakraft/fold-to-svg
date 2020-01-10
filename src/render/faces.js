@@ -1,3 +1,6 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import {
   make_faces_coloring_from_faces_matrix,
   make_faces_coloring,

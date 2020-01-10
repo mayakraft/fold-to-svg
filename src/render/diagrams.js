@@ -1,3 +1,6 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import { bounding_rect } from "../FOLD/boundary";
 import {
   line,

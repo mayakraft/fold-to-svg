@@ -72,10 +72,7 @@ test("faces vertices", () => {
     edges_assignment: ["B", "B", "B", "B", "V"]
   };
   const polygons = FoldToSvg.faces_vertices_polygon(graph);
-
-  // todo: get rid of these spaces
-  // const test1 = ["0,0 1,0 0,1", "1,0 1,1 0,1"]
-  const test1 = ["0,0 1,0 0,1 ", "1,0 1,1 0,1 "]
+  const test1 = ["0,0 1,0 0,1", "1,0 1,1 0,1"]
     .map((p, i) => polygons[i].getAttribute("points") === p)
     .reduce((a, b) => a && b, true);
   expect(test1).toBe(true);  

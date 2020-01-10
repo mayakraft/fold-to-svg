@@ -1,4 +1,8 @@
 /**
+ * fold to svg (c) Robby Kraft
+ */
+
+/**
  * this clone function is decent, except for:
  * - it doesn't detect recursive cycles
  * - weird behavior around Proxys

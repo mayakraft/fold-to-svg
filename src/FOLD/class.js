@@ -1,4 +1,6 @@
-
+/**
+ * fold to svg (c) Robby Kraft
+ */
 export const all_classes = function (graph) {
   const file_classes = (graph.file_classes != null
     ? graph.file_classes : []).join(" ");

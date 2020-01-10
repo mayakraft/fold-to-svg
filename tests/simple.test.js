@@ -1,43 +1,41 @@
-// this tests extremely simple fold files
-// ensuring all trivial cases are taken care of
-
 const fs = require("fs");
 const FoldToSvg = require("../fold-to-svg");
-
 const outputDir = "./tests/output";
 fs.existsSync(outputDir) || fs.mkdirSync(outputDir);
 
-const empty = {};
-
-const one_vertex = {
-  frame_classes: ["creasePattern"],
-  vertices_coords: [[0.5, 0.5]],
-};
-
-const one_edge = {
-  frame_classes: ["creasePattern"],
-  vertices_coords: [[0, 0], [1, 1]],
-  edges_vertices: [[0, 1]],
-  edges_assignment: ["V"],
-};
+// this tests extremely simple fold files and trivial cases
 
 test("empty FOLD object", () => {
-  fs.writeFile("./tests/output/empty.svg", FoldToSvg(empty), (error) => {
-    if (error) { throw error; }
-    expect(error).toBe(null);
-  });
+  const emptySvg = FoldToSvg({}, {output: "svg"});
+  expect(emptySvg.childNodes.length).toBe(0);
+  fs.writeFile(`${outputDir}/empty.svg`, FoldToSvg({}), () => {});
 });
 
 test("one vertex FOLD object", () => {
-  fs.writeFile("./tests/output/one-vertex.svg", FoldToSvg(one_vertex), (error) => {
-    if (error) { throw error; }
-    expect(error).toBe(null);
-  });
+  const oneVertex = { vertices_coords: [[0.5, 0.5]] };
+  const oneVertexSvgHidden = FoldToSvg(oneVertex, {output: "svg"});
+  expect(oneVertexSvgHidden.childNodes.length).toBe(0);
+  const oneVertexSvgVisible = FoldToSvg(oneVertex, {output: "svg", vertices: true});
+  expect(oneVertexSvgVisible.childNodes.length).toBe(1);
+  fs.writeFile(`${outputDir}/one-vertex-hidden.svg`, FoldToSvg(oneVertex), () => {});
+  fs.writeFile(`${outputDir}/one-vertex-visible.svg`, FoldToSvg(oneVertex, {vertices: true}), () => {});
+});
+
+test("two vertex FOLD object", () => {
+  const twoVertex = { vertices_coords: [[2,3],[9,8]] };
+  const twoVertexSvg = FoldToSvg(twoVertex, {output: "svg", vertices: true});
+  expect(twoVertexSvg.childNodes.length).toBe(1);
+  expect(twoVertexSvg.childNodes[0].childNodes.length).toBe(2);
+  fs.writeFile(`${outputDir}/two-vertex.svg`, FoldToSvg(twoVertex, {vertices: true}), () => {});
 });
 
 test("one edge FOLD object", () => {
-  fs.writeFile("./tests/output/one-edge.svg", FoldToSvg(one_edge), (error) => {
-    if (error) { throw error; }
-    expect(error).toBe(null);
-  });
+  const oneEdge = {
+    vertices_coords: [[0, 0], [1, 1]],
+    edges_vertices: [[0, 1]],
+    edges_assignment: ["V"],
+  };
+  const oneEdgeSvg = FoldToSvg(oneEdge, {output: "svg"});
+  // expect(oneEdgeSvg.childNodes.length).toBe(1);
+  fs.writeFile(`${outputDir}/one-edge-1-1.svg`, FoldToSvg(oneEdge), () => {});
 });
