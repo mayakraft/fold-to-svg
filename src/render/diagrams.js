@@ -1,23 +1,27 @@
-import {
-  bounding_rect,
-} from "../graph";
-
+import { bounding_rect } from "../FOLD/boundary";
 import {
   line,
   arcArrow,
-} from "./svg";
+} from "../svg/svg";
+
+const DIAGRAMS = "re:diagrams";
+const DIAGRAM_LINES = "re:diagram_lines";
+const DIAGRAM_LINE_CLASSES = "re:diagram_line_classes";
+const DIAGRAM_LINE_COORDS = "re:diagram_line_coords";
+const DIAGRAM_ARROWS = "re:diagram_arrows";
+const DIAGRAM_ARROW_COORDS = "re:diagram_arrow_coords";
 
 export default function (graph, renderGroup) {
-  if (graph["re:diagrams"] === undefined) { return; }
-  if (graph["re:diagrams"].length === 0) { return; }
-  Array.from(graph["re:diagrams"]).forEach((instruction) => {
+  if (graph[DIAGRAMS] === undefined) { return; }
+  if (graph[DIAGRAMS].length === 0) { return; }
+  Array.from(graph[DIAGRAMS]).forEach((instruction) => {
     // draw crease lines
-    if ("re:diagram_lines" in instruction === true) {
-      instruction["re:diagram_lines"].forEach((crease) => {
-        const creaseClass = ("re:diagram_line_classes" in crease)
-          ? crease["re:diagram_line_classes"].join(" ")
+    if (DIAGRAMS_LINES in instruction === true) {
+      instruction[DIAGRAMS_LINES].forEach((crease) => {
+        const creaseClass = (DIAGRAMS_LINE_CLASSES in crease)
+          ? crease[DIAGRAMS_LINE_CLASSES].join(" ")
           : "valley"; // unspecified should throw error really
-        const pts = crease["re:diagram_line_coords"];
+        const pts = crease[DIAGRAMS_LINE_COORDS];
         if (pts !== undefined) {
           const l = line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
           l.setAttribute("class", creaseClass);
@@ -26,7 +30,7 @@ export default function (graph, renderGroup) {
       });
     }
     // draw arrows and instruction markings
-    if ("re:diagram_arrows" in instruction === true) {
+    if (DIAGRAM_ARROWS in instruction === true) {
       const r = bounding_rect(graph);
       const vmin = r[2] > r[3] ? r[3] : r[2];
       const prefs = {
@@ -34,10 +38,10 @@ export default function (graph, renderGroup) {
         width: vmin * 0.035,
         strokeWidth: vmin * 0.02,
       };
-      instruction["re:diagram_arrows"].forEach((arrowInst) => {
-        if (arrowInst["re:diagram_arrow_coords"].length === 2) {
+      instruction[DIAGRAM_ARROWS].forEach((arrowInst) => {
+        if (arrowInst[DIAGRAM_ARROW_COORDS].length === 2) {
           // start is [0], end is [1]
-          const p = arrowInst["re:diagram_arrow_coords"];
+          const p = arrowInst[DIAGRAM_ARROW_COORDS];
           let side = p[0][0] < p[1][0];
           if (Math.abs(p[0][0] - p[1][0]) < 0.1) { // xs are ~ the same
             side = p[0][1] < p[1][1]

@@ -31,7 +31,6 @@ export const setViewBox = function (SVG, x, y, width, height, padding = 0) {
   SVG.setAttributeNS(null, "viewBox", viewBoxString);
 };
 
-
 export const line = function (x1, y1, x2, y2) {
   const shape = window.document.createElementNS(svgNS, "line");
   shape.setAttributeNS(null, "x1", x1);
@@ -57,13 +56,16 @@ export const polygon = function (pointsArray) {
   return shape;
 };
 
+export const path = function (d) {
+  const p = window.document.createElementNS(svgNS, "path");
+  p.setAttributeNS(null, "d", d);
+  return p;
+};
+
 export const bezier = function (fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY) {
   const pts = [[fromX, fromY], [c1X, c1Y], [c2X, c2Y], [toX, toY]]
     .map(p => p.join(","));
-  const d = `M ${pts[0]} C ${pts[1]} ${pts[2]} ${pts[3]}`;
-  const shape = window.document.createElementNS(svgNS, "path");
-  shape.setAttributeNS(null, "d", d);
-  return shape;
+  return path(`M ${pts[0]} C ${pts[1]} ${pts[2]} ${pts[3]}`);
 };
 
 export const arcArrow = function (start, end, options) {

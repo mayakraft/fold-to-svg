@@ -1,14 +1,31 @@
-import {
-  svgBoundaries,
-  svgVertices,
-  svgEdges,
-  svgFacesVertices,
-  svgFacesEdges,
-} from "./toSVG/components";
+// import {
+//   svgBoundaries,
+//   svgVertices,
+//   svgEdges,
+//   svgFacesVertices,
+//   svgFacesEdges,
+// } from "./render/components";
 
-import fold_to_svg from "./toSVG/render";
+import { vertices_circle } from "./render/vertices";
+
+import {
+  edges_path_data,
+  edges_by_assignment_paths_data,
+  edges_path,
+  edges_line
+} from "./render/edges";
+
+import {
+  faces_vertices_polygon,
+  faces_edges_polygon
+} from "./render/faces";
+
+import render from "./render/index";
 
 const getObject = function (input) {
+  if (input == null) {
+    return {};
+  }
   if (typeof input === "object" && input !== null) {
     return input;
   }
@@ -20,36 +37,33 @@ const getObject = function (input) {
       throw error;
     }
   }
-  throw new Error("couldn't recognize input. looking for string or object");
+  throw new TypeError("couldn't recognize input. looking for string or object");
 };
 
-const svg = function (input, options) {
+const FoldToSvg = function (input, options) {
   try {
     const fold = getObject(input);
-    return fold_to_svg(fold, options);
+    return render(fold, options);
   } catch (error) {
     throw error;
   }
 };
 
-const webGL = function () {
-  // empty. todo
-};
+FoldToSvg.vertices_circle = vertices_circle;
+FoldToSvg.edges_path_data = edges_path_data;
+FoldToSvg.edges_by_assignment_paths_data = edges_by_assignment_paths_data;
+FoldToSvg.edges_path = edges_path;
+FoldToSvg.edges_line = edges_line;
+FoldToSvg.faces_vertices_polygon = faces_vertices_polygon;
+FoldToSvg.faces_edges_polygon = faces_edges_polygon;
 
-const foldDraw = {
-  svg,
-  webGL,
-  components: {
-    svg: {
-      boundaries: svgBoundaries,
-      vertices: svgVertices,
-      edges: svgEdges,
-      faces: svgFacesVertices,
-      faces_vertices: svgFacesVertices,
-      faces_edges: svgFacesEdges,
-    },
-    webGL: { },
-  },
-};
+// FoldToSvg.components = {
+//   boundaries: svgBoundaries,
+//   vertices: svgVertices,
+//   edges: svgEdges,
+//   faces: svgFacesVertices,
+//   faces_vertices: svgFacesVertices,
+//   faces_edges: svgFacesEdges
+// };
 
-export default foldDraw;
+export default FoldToSvg;

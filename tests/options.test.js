@@ -1,5 +1,5 @@
 const fs = require("fs");
-const drawFold = require("../fold-draw");
+const FoldtoSvg = require("../fold-to-svg");
 
 test("test options parameter", () => {
   expect(true).toBe(true);

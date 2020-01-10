@@ -1,49 +1,27 @@
 # FOLD → SVG
 
-[![Build Status](https://travis-ci.org/robbykraft/fold-draw.svg?branch=master)](https://travis-ci.org/robbykraft/fold-draw)
+[![Build Status](https://travis-ci.org/robbykraft/fold-to-svg.svg?branch=master)](https://travis-ci.org/robbykraft/fold-to-svg)
 
-convert [FOLD](https://github.com/edemaine/fold) file format into SVG. (todo: WebGL)
+convert [FOLD](https://github.com/edemaine/fold) file format into SVG.
 
-> to convert the other direction, svg into fold: [tofold](https://github.com/robbykraft/tofold/)
-
-```javascript
-foldDraw.svg(foldObject)
-```
-
-the second argument is an options {} object, includes:
-
-* `stylesheet` CSS stylesheet to be placed in the header. styles the SVG.
-* `frame` render a certain frame in "file_frames", default is the top level
-* `width` width of SVG (not viewport, which is in FOLD coordinate space)
-* `height` height of SVG
-* `inlineStyle` include style header in the svg. default: true
-* `shadows` include shadow effect. default: false
-* `padding` without modifying the viewbox, shrink the fold object in the view. default: 0.
-* `viewBox` type is an array of 4 numbers: x y w h. default null,
-
-show hide these components. true false is it visible?
-
-* `diagram` if there is an "re:diagrams" frame, draw it. default: true
-* `boundaries` default: true
-* `faces` default: true
-* `edges` default: true
-* `vertices` default: false
-
-```
-let foldedSVG = FOLD_SVG.toSVG(foldObject, {frame:1});
-```
-
-## components
-
-access to methods to draw the components individually:
+> to convert the other direction see [svg to fold](https://github.com/robbykraft/svg-to-fold/)
 
 ```javascript
-foldDraw.components.svg.vertices(foldObject)
+var svg = FoldToSvg(foldObject, options)
 ```
+- the first argument is a FOLD object, as a *string* or a *Javascript object*.
+- the second argument is an **optional** *Javascript object*.
 
-- boundaries
-- vertices
-- edges
-- faces
-- faces_vertices
-- faces_edges
+## Components
+
+Each of the individual component draw methods are made available to the end user.
+
+```javascript
+FoldToSvg.vertices_circle(foldObject)
+FoldToSvg.edges_path_data(foldObject)
+FoldToSvg.edges_by_assignment_paths_data(foldObject)
+FoldToSvg.edges_line(foldObject)
+FoldToSvg.edges_path(foldObject)
+FoldToSvg.faces_vertices_polygon(foldObject)
+FoldToSvg.faces_edges_polygon(foldObject)
+```

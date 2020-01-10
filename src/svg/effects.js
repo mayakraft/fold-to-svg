@@ -48,8 +48,6 @@ export const shadowFilter = function (id_name = "shadow") {
   return defs;
 };
 
-export const shhhh = 5;
-
 // export const shadowFilter = function (id_name = "shadow") {
 //  let defs = document.createElementNS(svgNS, "defs");
 //  let filter = document.createElementNS(svgNS, "filter");

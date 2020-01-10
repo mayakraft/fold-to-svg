@@ -2,19 +2,19 @@
 <title></title>
 <body></body>
 
-<script type="text/javascript" src="../fold-draw.js"></script>
+<script type="text/javascript" src="../fold-to-svg.js"></script>
 
 <script>
 const singleVertex = {file_spec:1.1,frame_classes:['creasePattern'],vertices_coords:[[0,0],[1,0],[1,1],[0,1],[0.25,0.5],[1,0.76470588235294]],vertices_vertices:[[1,3],[5,0],[3,5],[0,2],[0,1,3,5],[1,2,4]],vertices_faces:[[0,1],[0,2],[3],[3,1],[0,2,3,1],[2,3]],edges_vertices:[[0,1],[2,3],[3,0],[0,4],[1,4],[3,4],[1,5],[5,2],[4,5]],edges_faces:[[0],[3],[1],[1,0],[0,2],[3,1],[2],[3],[2,3]],edges_assignment:['B','B','B','V','M','V','B','B','V'],edges_foldAngle:[0,0,0,180,180,180,0,0,180],faces_vertices:[[0,1,4],[3,0,4],[4,1,5],[5,2,3,4]],faces_edges:[[0,4,3],[2,3,5],[4,6,8],[7,1,5,8]],file_frames:[{vertices_coords:[[0,0],[1,0],[0.52,-0.36],[0.8,0.6],[0.25,0.5],[0.294117647058823,-0.294117647058824]],frame_classes:['foldedForm'],frame_inherit:true,frame_parent:0,'faces_re:matrix':[[1,0,0,1,0,0],[-0.6,0.8,0.8,0.6,0,0],[0.3846153846153847,-0.9230769230769231,-0.9230769230769231,-0.3846153846153847,0.6153846153846153,0.9230769230769231],[-0.28,-0.96,0.96,-0.28,-0.16,0.88]],'faces_re:layer':[1,0,2,3]}]};
 
 // console.log(JSON.parse(singleVertex));
 
-const singleVertexCPString = foldDraw.svg(singleVertex);
+const singleVertexCPString = FoldToSvg(singleVertex);
 const singleVertexCPSVG = new DOMParser()
   .parseFromString(singleVertexCPString, "text/xml").documentElement;
 document.body.appendChild(singleVertexCPSVG);
 
-const singleVertexString = foldDraw.svg(singleVertex, { frame: 1 });
+const singleVertexString = FoldToSvg(singleVertex, { file_frame: 1 });
 const singleVertexSVG = new DOMParser()
   .parseFromString(singleVertexString, "text/xml").documentElement;
 document.body.appendChild(singleVertexSVG);
@@ -25,7 +25,7 @@ document.body.appendChild(singleVertexSVG);
 fetch("examples/crane.fold")
   .then(result => result.text())
   .then((result) => {
-    const svgString = foldDraw.svg(result);
+    const svgString = FoldToSvg(result);
     const svg = new DOMParser()
       .parseFromString(svgString, "text/xml").documentElement;
     document.body.appendChild(svg);
