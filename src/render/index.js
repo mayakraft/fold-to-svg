@@ -25,19 +25,17 @@
  * ["foldAngle"] show fold-angles as alpha values for stroke
  */
 
-import defaultStyle from "../styles/default.css";
 import vkXML from "../../include/vkbeautify-xml";
+import math from "../../include/math";
+import window from "../environment/window";
+import defaultStyle from "../styles/default.css";
+import { bounding_rect } from "../FOLD/boundary";
+import { flatten_frame } from "../FOLD/file_frames";
+import { all_classes } from "../FOLD/class";
 import { shadowFilter } from "../svg/effects";
-import renderDiagrams from "./diagrams";
+import * as SVG from "../svg/svg";
 
-// import {
-//   svgBoundaries,
-//   svgVertices,
-//   svgEdges,
-//   svgFacesVertices,
-//   svgFacesEdges,
-// } from "./components";
-
+// components
 import { boundaries_polygon } from "./boundaries";
 import { vertices_circle } from "./vertices";
 import { edges_path } from "./edges";
@@ -45,137 +43,177 @@ import {
   faces_vertices_polygon,
   faces_edges_polygon
 } from "./faces";
+import renderDiagrams from "./diagrams";
 
-import window from "../environment/window";
-
-import { bounding_rect } from "../FOLD/boundary";
-import { flatten_frame } from "../FOLD/file_frames";
-
-import {
-  svg,
-  group,
-  style,
-  setViewBox,
-} from "../svg/svg";
-
-const svgFaces = function (graph) {
-  if ("faces_vertices" in graph === true) {
-    return faces_vertices_polygon(graph);
-  }
-  if ("faces_edges" in graph === true) {
-    return faces_edges_polygon(graph);
-  }
-  return [];
+// there is a built in preference to using faces_vertices, due to it
+// requiring fewer components to be present, and preparation being faster
+const faces_function = function (graph) {
+  return graph.faces_vertices != null
+    ? faces_vertices_polygon(graph)
+    : faces_edges_polygon(graph);
 };
 
 const components = {
   vertices: vertices_circle,
   edges: edges_path,
-  faces: svgFaces,
+  faces: faces_function,
   boundaries: boundaries_polygon,
 };
 
-const all_classes = function (graph) {
-  const file_classes = (graph.file_classes != null
-    ? graph.file_classes : []).join(" ");
-  const frame_classes = (graph.frame_classes != null
-    ? graph.frame_classes : []).join(" ");
-  return [file_classes, frame_classes]
-    .filter(s => s !== "")
-    .join(" ");
+const defaults = Object.freeze({
+  input: "string", // "string", "svg"
+  output: "string", // "string", "svg"
+
+  padding: null,
+  viewBox: null, // type is an array of 4 numbers: x y w h
+  file_frame: null,
+
+  // show / hide. is it visible?
+  diagrams: true, // if "re:diagrams" exists
+  boundaries: true,
+  faces: true,
+  edges: true,
+  vertices: false,
+});
+
+const stringToObject = function (input) {
+  return (typeof input === "string" || input instanceof String
+    ? JSON.parse(input)
+    : input);
 };
 
-const clean_number = function (num, places = 14) {
-  return parseFloat(num.toFixed(places));
-};
+const default_svg_style = Object.freeze({
+  width: "500px",
+  height: "500px",
+  stroke: "black",
+  fill: "none",
+  "stroke-linejoin": "bevel",
+})
+
+const default_component_styles = Object.freeze({
+  boundaries: {},
+  faces: { stroke: "none" },
+  edges: {},
+  vertices: { stroke: "none", fill: "black" },
+});
+
+const default_face_assignment_styles = Object.freeze({
+  front: { stroke: "black", fill: "gray" },
+  back: { stroke: "black", fill: "white" },
+});
+
+const default_edge_assignment_styles = Object.freeze({
+  boundary: {},
+  mountain: { stroke: "red" },
+  valley: { stroke: "blue" },
+  mark: { stroke: "gray" },
+  unassigned: {},
+});
 
 /**
  * options are, generally, to draw everything possible.
  * specify a frame number otherwise it will render the top level
  * draw
  */
-const fold_to_svg = function (fold, options = {}) {
-  let graph = fold;
+const fold_to_svg = function (input, options = defaults) {
+  // sanitize options
+  Object.keys(defaults)
+    .filter(k => !(k in options))
+    .forEach((k) => { options[k] = defaults[k]});
+
+  // get the FOLD input
+  const graph = (typeof options.file_frame === "number"
+    ? flatten_frame(stringToObject(input), options.file_frame)
+    : stringToObject(input));
+
   // clean vertices, back up original values
-  if (graph.vertices_coords != null) {
-    graph.vertices_coordsPreClean = graph.vertices_coords;
-    graph.vertices_coords = JSON.parse(JSON.stringify(graph.vertices_coords))
-      .map(v => v.map(n => clean_number(n)));
-  }
+  // if (graph.vertices_coords != null) {
+  //   graph.vertices_coordsPreClean = graph.vertices_coords;
+  //   graph.vertices_coords = JSON.parse(JSON.stringify(graph.vertices_coords))
+  //     .map(v => v.map(n => math.core.clean_number(n)));
+  // }
+  const svg = SVG.svg();
 
-  const o = {
-    defaults: true,
-    width: "500px",
-    height: "500px",
-    inlineStyle: true,
-    stylesheet: defaultStyle,
-    shadows: false,
-    padding: 0,
-    viewBox: null, // type is an array of 4 numbers: x y w h
-    // show / hide components. is visible?
-    diagram: true, // if there is an "re:diagrams" frame, draw it.
-    boundaries: true,
-    faces: true,
-    edges: true,
-    vertices: false,
-  };
-  Object.assign(o, options);
-  if (o.frame != null) {
-    graph = flatten_frame(fold, o.frame);
-  }
-  if (o.svg == null) {
-    o.svg = svg();
-  }
+  Object.keys(default_svg_style)
+    .forEach(style => svg.setAttribute(style, default_svg_style[style]));
+
   // copy file/frame classes to top level
+  if (typeof parseFloat(options.width) === "number" && !isNaN(parseFloat(options.width))) {
+    svg.setAttribute("width", options.width);
+  }
+  if (typeof parseFloat(options.height) === "number" && !isNaN(parseFloat(options.height))) {
+    svg.setAttribute("height", options.height);
+  }
   const classValue = all_classes(graph);
-  if (classValue !== "") { o.svg.setAttribute("class", classValue); }
-  o.svg.setAttribute("width", o.width);
-  o.svg.setAttribute("height", o.height);
+  if (classValue !== "") { svg.setAttribute("class", classValue); }
 
+  // if we need a DEFS section, add it here
   // const styleElement = style();
-  // o.svg.appendChild(styleElement);
+  // svg.appendChild(styleElement);
 
+  // draw
   const groups = { };
-  ["boundaries", "faces", "edges", "vertices"].filter(key => o[key])
+  ["boundaries", "edges", "faces", "vertices"].filter(key => options[key] === true)
     .forEach((key) => {
-      groups[key] = group();
+      groups[key] = SVG.group();
       groups[key].setAttribute("class", key);
+      Object.keys(default_component_styles[key])
+        .forEach(style => groups[key].setAttribute(style, default_component_styles[key][style]));
     });
   // draw geometry into groups
   Object.keys(groups)
     .forEach(key => components[key](graph)
       .forEach(a => groups[key].appendChild(a)));
-
+  // append geometry to SVG, if geometry exists
   Object.keys(groups)
     .filter(key => groups[key].childNodes.length > 0)
-    .forEach(key => o.svg.appendChild(groups[key]));
+    .forEach(key => svg.appendChild(groups[key]));
 
+  // apply specific style: edges
+  Object.keys(default_edge_assignment_styles)
+    .forEach(assignment => Array.from(groups.edges.childNodes)
+      .filter(child => assignment === child.getAttribute("class"))
+      .forEach(child => Object.keys(default_edge_assignment_styles[assignment])
+        .forEach(key => child.setAttribute(key, default_edge_assignment_styles[assignment][key]))));
+  // faces
+  Object.keys(default_face_assignment_styles)
+    .forEach(assignment => Array.from(groups.faces.childNodes)
+      .filter(child => assignment === child.getAttribute("class"))
+      .forEach(child => Object.keys(default_face_assignment_styles[assignment])
+        .forEach(key => child.setAttribute(key, default_face_assignment_styles[assignment][key]))));
   // if exists, draw diagram instructions, arrows
-  if ("re:diagrams" in graph && o.diagram) {
-    const instructionLayer = group();
-    o.svg.appendChild(instructionLayer);
-    renderDiagrams(graph, instructionLayer);
-  }
+  // if ("re:diagrams" in graph && o.diagram) {
+  //   const instructionLayer = group();
+  //   svg.appendChild(instructionLayer);
+  //   renderDiagrams(graph, instructionLayer);
+  // }
 
-  if (o.shadows) {
-    const shadow_id = "face_shadow";
-    const filter = shadowFilter(shadow_id);
-    o.svg.appendChild(filter);
-    Array.from(groups.faces.childNodes)
-      .forEach(f => f.setAttribute("filter", `url(#${shadow_id})`));
-  }
+  // if (o.shadows) {
+  //   const shadow_id = "face_shadow";
+  //   const filter = shadowFilter(shadow_id);
+  //   svg.appendChild(filter);
+  //   Array.from(groups.faces.childNodes)
+  //     .forEach(f => f.setAttribute("filter", `url(#${shadow_id})`));
+  // }
 
   const rect = bounding_rect(graph);
-  if (o.viewBox != null) {
-    setViewBox(o.svg, ...o.viewBox, o.padding);
+  if (options.viewBox !== null &&
+    (typeof options.viewBox === "string" || typeof options.viewBox === "object")) {
+    SVG.setViewBox(svg, ...options.viewBox, options.padding);
   } else {
-    setViewBox(o.svg, ...rect, o.padding);
+    SVG.setViewBox(svg, ...rect, options.padding);
   }
+
+  const vmin = Math.min(rect[2], rect[3]);
+  if (vmin !== 0) {
+    svg.setAttribute("stroke-width", vmin / 100);
+  }
+
   // finished with graph
-  if (graph.vertices_coordsPreClean != null) {
-    graph.vertices_coords = graph.vertices_coordsPreClean;
-    delete graph.vertices_coordsPreClean;
-  }
+  // if (graph.vertices_coordsPreClean != null) {
+  //   graph.vertices_coords = graph.vertices_coordsPreClean;
+  //   delete graph.vertices_coordsPreClean;
+  // }
 
   // fill CSS style with --crease-width, and custom or a default style
   // if (o.inlineStyle) {
@@ -188,7 +226,9 @@ const fold_to_svg = function (fold, options = {}) {
   //   styleElement.appendChild(cdata);
   // }
 
-  const stringified = (new window.XMLSerializer()).serializeToString(o.svg);
+  // return
+  if (options.output === "svg") { return svg; }
+  const stringified = (new window.XMLSerializer()).serializeToString(svg);
   const beautified = vkXML(stringified);
   return beautified;
 };

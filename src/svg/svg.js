@@ -31,7 +31,6 @@ export const setViewBox = function (SVG, x, y, width, height, padding = 0) {
   SVG.setAttributeNS(null, "viewBox", viewBoxString);
 };
 
-
 export const line = function (x1, y1, x2, y2) {
   const shape = window.document.createElementNS(svgNS, "line");
   shape.setAttributeNS(null, "x1", x1);
