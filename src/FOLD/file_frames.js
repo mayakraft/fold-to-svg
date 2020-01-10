@@ -1,8 +1,7 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import { clone } from "./object";
-
-// export const append_frame = function (fold_file) {
-
-// };
 
 export const flatten_frame = function (fold_file, frame_num) {
   if ("file_frames" in fold_file === false

@@ -1,3 +1,6 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import { get_boundary } from "../FOLD/boundary";
 import { polygon } from "../svg/svg";
 

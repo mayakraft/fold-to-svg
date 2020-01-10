@@ -1,11 +1,12 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import window from "../environment/window";
 
 const { document } = window;
 const svgNS = "http://www.w3.org/2000/svg";
 
 export const shadowFilter = function (id_name = "shadow") {
-  const defs = document.createElementNS(svgNS, "defs");
-
   const filter = document.createElementNS(svgNS, "filter");
   filter.setAttribute("width", "200%");
   filter.setAttribute("height", "200%");
@@ -38,14 +39,12 @@ export const shadowFilter = function (id_name = "shadow") {
   merge.appendChild(mergeNode1);
   merge.appendChild(mergeNode2);
 
-  defs.appendChild(filter);
-
   filter.appendChild(blur);
   filter.appendChild(offset);
   filter.appendChild(flood);
   filter.appendChild(composite);
   filter.appendChild(merge);
-  return defs;
+  return filter;
 };
 
 // export const shadowFilter = function (id_name = "shadow") {

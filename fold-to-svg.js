@@ -112,13 +112,32 @@
     svgImage.setAttribute("xmlns", svgNS);
     return svgImage;
   };
-  var group = function group() {
+  var group = function group(parent) {
     var g = win.document.createElementNS(svgNS, "g");
+
+    if (parent) {
+      parent.appendChild(g);
+    }
+
     return g;
   };
-  var style = function style() {
+  var defs = function defs(parent) {
+    var defs = win.document.createElementNS(svgNS, "defs");
+
+    if (parent) {
+      parent.appendChild(defs);
+    }
+
+    return defs;
+  };
+  var style = function style(parent) {
     var s = win.document.createElementNS(svgNS, "style");
     s.setAttribute("type", "text/css");
+
+    if (parent) {
+      parent.appendChild(s);
+    }
+
     return s;
   };
   var setViewBox = function setViewBox(SVG, x, y, width, height) {
@@ -149,9 +168,9 @@
   };
   var polygon = function polygon(pointsArray) {
     var shape = win.document.createElementNS(svgNS, "polygon");
-    var pointsString = pointsArray.reduce(function (a, b) {
-      return "".concat(a).concat(b[0], ",").concat(b[1], " ");
-    }, "");
+    var pointsString = pointsArray.map(function (p) {
+      return "".concat(p[0], ",").concat(p[1]);
+    }).join(" ");
     shape.setAttributeNS(null, "points", pointsString);
     return shape;
   };
@@ -252,6 +271,7 @@
     __proto__: null,
     svg: svg,
     group: group,
+    defs: defs,
     style: style,
     setViewBox: setViewBox,
     line: line,
@@ -345,9 +365,10 @@
   };
 
   var edges_path_data = function edges_path_data(graph) {
-    return edges_coords(graph).map(function (segment) {
+    var path_data = edges_coords(graph).map(function (segment) {
       return segment_to_path(segment);
     }).join("");
+    return path_data === "" ? undefined : path_data;
   };
   var edges_by_assignment_paths_data = function edges_by_assignment_paths_data(graph) {
     if (graph.edges_vertices == null || graph.vertices_coords == null || graph.edges_assignment == null) {
@@ -375,7 +396,8 @@
   };
   var edges_path = function edges_path(graph) {
     if (graph.edges_assignment == null) {
-      return [path(edges_path_data(graph))];
+      var d = edges_path_data(graph);
+      return d === undefined ? [] : [path(d)];
     }
 
     var ds = edges_by_assignment_paths_data(graph);
@@ -793,6 +815,20 @@
 
     return newO;
   };
+  var recursive_freeze = function recursive_freeze(input) {
+    Object.freeze(input);
+
+    if (input === undefined) {
+      return input;
+    }
+
+    Object.getOwnPropertyNames(input).filter(function (prop) {
+      return input[prop] !== null && (_typeof(input[prop]) === "object" || typeof input[prop] === "function") && !Object.isFrozen(input[prop]);
+    }).forEach(function (prop) {
+      return recursive_freeze(input[prop]);
+    });
+    return input;
+  };
 
   var flatten_frame = function flatten_frame(fold_file, frame_num) {
     if ("file_frames" in fold_file === false || fold_file.file_frames.length < frame_num) {
@@ -855,6 +891,42 @@
   };
 
   var document = win.document;
+  var svgNS$1 = "http://www.w3.org/2000/svg";
+  var shadowFilter = function shadowFilter() {
+    var id_name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "shadow";
+    var filter = document.createElementNS(svgNS$1, "filter");
+    filter.setAttribute("width", "200%");
+    filter.setAttribute("height", "200%");
+    filter.setAttribute("id", id_name);
+    var blur = document.createElementNS(svgNS$1, "feGaussianBlur");
+    blur.setAttribute("in", "SourceAlpha");
+    blur.setAttribute("stdDeviation", "0.005");
+    blur.setAttribute("result", "blur");
+    var offset = document.createElementNS(svgNS$1, "feOffset");
+    offset.setAttribute("in", "blur");
+    offset.setAttribute("result", "offsetBlur");
+    var flood = document.createElementNS(svgNS$1, "feFlood");
+    flood.setAttribute("flood-color", "#000");
+    flood.setAttribute("flood-opacity", "0.3");
+    flood.setAttribute("result", "offsetColor");
+    var composite = document.createElementNS(svgNS$1, "feComposite");
+    composite.setAttribute("in", "offsetColor");
+    composite.setAttribute("in2", "offsetBlur");
+    composite.setAttribute("operator", "in");
+    composite.setAttribute("result", "offsetBlur");
+    var merge = document.createElementNS(svgNS$1, "feMerge");
+    var mergeNode1 = document.createElementNS(svgNS$1, "feMergeNode");
+    var mergeNode2 = document.createElementNS(svgNS$1, "feMergeNode");
+    mergeNode2.setAttribute("in", "SourceGraphic");
+    merge.appendChild(mergeNode1);
+    merge.appendChild(mergeNode2);
+    filter.appendChild(blur);
+    filter.appendChild(offset);
+    filter.appendChild(flood);
+    filter.appendChild(composite);
+    filter.appendChild(merge);
+    return filter;
+  };
 
   var boundaries_polygon = function boundaries_polygon(graph) {
     if ("vertices_coords" in graph === false || "edges_vertices" in graph === false || "edges_assignment" in graph === false) {
@@ -869,73 +941,74 @@
     return [p];
   };
 
-  var faces_function = function faces_function(graph) {
+  var faces_draw_function = function faces_draw_function(graph) {
     return graph.faces_vertices != null ? faces_vertices_polygon(graph) : faces_edges_polygon(graph);
   };
 
-  var components = {
+  var component_draw_function = {
     vertices: vertices_circle,
     edges: edges_path,
-    faces: faces_function,
+    faces: faces_draw_function,
     boundaries: boundaries_polygon
   };
+  var attributes = recursive_freeze({
+    svg: {
+      width: "500px",
+      height: "500px",
+      stroke: "black",
+      fill: "none",
+      "stroke-linejoin": "bevel"
+    },
+    groups: {
+      boundaries: {},
+      faces: {
+        stroke: "none"
+      },
+      edges: {},
+      vertices: {
+        stroke: "none",
+        fill: "black"
+      }
+    },
+    faces: {
+      front: {
+        stroke: "black",
+        fill: "gray"
+      },
+      back: {
+        stroke: "black",
+        fill: "white"
+      }
+    },
+    edges: {
+      boundary: {},
+      mountain: {
+        stroke: "red"
+      },
+      valley: {
+        stroke: "blue"
+      },
+      mark: {
+        stroke: "gray"
+      },
+      unassigned: {
+        stroke: "lightgray"
+      }
+    }
+  });
   var defaults = Object.freeze({
     input: "string",
     output: "string",
+    attributes: attributes,
     padding: null,
-    viewBox: null,
     file_frame: null,
+    stylesheet: null,
+    shadows: null,
     diagrams: true,
     boundaries: true,
     faces: true,
     edges: true,
     vertices: false
-  });
-
-  var stringToObject = function stringToObject(input) {
-    return typeof input === "string" || input instanceof String ? JSON.parse(input) : input;
-  };
-
-  var default_svg_style = Object.freeze({
-    width: "500px",
-    height: "500px",
-    stroke: "black",
-    fill: "none",
-    "stroke-linejoin": "bevel"
-  });
-  var default_component_styles = Object.freeze({
-    boundaries: {},
-    faces: {
-      stroke: "none"
-    },
-    edges: {},
-    vertices: {
-      stroke: "none",
-      fill: "black"
-    }
-  });
-  var default_face_assignment_styles = Object.freeze({
-    front: {
-      stroke: "black",
-      fill: "gray"
-    },
-    back: {
-      stroke: "black",
-      fill: "white"
-    }
-  });
-  var default_edge_assignment_styles = Object.freeze({
-    boundary: {},
-    mountain: {
-      stroke: "red"
-    },
-    valley: {
-      stroke: "blue"
-    },
-    mark: {
-      stroke: "gray"
-    },
-    unassigned: {}
   });
 
   var fold_to_svg = function fold_to_svg(input) {
@@ -945,24 +1018,31 @@
     }).forEach(function (k) {
       options[k] = defaults[k];
     });
-    var graph = typeof options.file_frame === "number" ? flatten_frame(stringToObject(input), options.file_frame) : stringToObject(input);
+    var graph = typeof options.file_frame === "number" ? flatten_frame(input, options.file_frame) : input;
     var svg$1 = svg();
-    Object.keys(default_svg_style).forEach(function (style) {
-      return svg$1.setAttribute(style, default_svg_style[style]);
-    });
-
-    if (typeof parseFloat(options.width) === "number" && !isNaN(parseFloat(options.width))) {
-      svg$1.setAttribute("width", options.width);
-    }
-
-    if (typeof parseFloat(options.height) === "number" && !isNaN(parseFloat(options.height))) {
-      svg$1.setAttribute("height", options.height);
-    }
-
+    var bounds = bounding_rect(graph);
+    var vmin = Math.min(bounds[2], bounds[3]);
+    setViewBox.apply(SVG, [svg$1].concat(_toConsumableArray(bounds), [options.padding]));
+    svg$1.setAttribute("stroke-width", vmin / 100);
     var classValue = all_classes(graph);
 
     if (classValue !== "") {
       svg$1.setAttribute("class", classValue);
+    }
+
+    Object.keys(options.attributes.svg).forEach(function (style) {
+      return svg$1.setAttribute(style, options.attributes.svg[style]);
+    });
+    var defs$1 = options.stylesheet != null || options.shadows != null ? defs(svg$1) : undefined;
+
+    if (options.stylesheet != null) {
+      var style$1 = style(defs$1);
+      var cdata = new win.DOMParser().parseFromString("<xml></xml>", "application/xml").createCDATASection(options.stylesheet);
+      style$1.appendChild(cdata);
+    }
+
+    if (options.shadows != null) {
+      defs$1.appendChild(shadowFilter());
     }
 
     var groups = {};
@@ -971,12 +1051,12 @@
     }).forEach(function (key) {
       groups[key] = group();
       groups[key].setAttribute("class", key);
-      Object.keys(default_component_styles[key]).forEach(function (style) {
-        return groups[key].setAttribute(style, default_component_styles[key][style]);
+      Object.keys(options.attributes.groups[key]).forEach(function (style) {
+        return groups[key].setAttribute(style, options.attributes.groups[key][style]);
       });
     });
     Object.keys(groups).forEach(function (key) {
-      return components[key](graph).forEach(function (a) {
+      return component_draw_function[key](graph, options).forEach(function (a) {
         return groups[key].appendChild(a);
       });
     });
@@ -985,37 +1065,24 @@
     }).forEach(function (key) {
       return svg$1.appendChild(groups[key]);
     });
-    Object.keys(default_edge_assignment_styles).forEach(function (assignment) {
+    Object.keys(options.attributes.edges).forEach(function (assignment) {
       return Array.from(groups.edges.childNodes).filter(function (child) {
         return assignment === child.getAttribute("class");
       }).forEach(function (child) {
-        return Object.keys(default_edge_assignment_styles[assignment]).forEach(function (key) {
-          return child.setAttribute(key, default_edge_assignment_styles[assignment][key]);
+        return Object.keys(options.attributes.edges[assignment]).forEach(function (key) {
+          return child.setAttribute(key, options.attributes.edges[assignment][key]);
         });
       });
     });
-    Object.keys(default_face_assignment_styles).forEach(function (assignment) {
+    Object.keys(options.attributes.faces).forEach(function (assignment) {
       return Array.from(groups.faces.childNodes).filter(function (child) {
         return assignment === child.getAttribute("class");
       }).forEach(function (child) {
-        return Object.keys(default_face_assignment_styles[assignment]).forEach(function (key) {
-          return child.setAttribute(key, default_face_assignment_styles[assignment][key]);
+        return Object.keys(options.attributes.faces[assignment]).forEach(function (key) {
+          return child.setAttribute(key, options.attributes.faces[assignment][key]);
         });
       });
     });
-    var rect = bounding_rect(graph);
-
-    if (options.viewBox !== null && (typeof options.viewBox === "string" || _typeof(options.viewBox) === "object")) {
-      setViewBox.apply(SVG, [svg$1].concat(_toConsumableArray(options.viewBox), [options.padding]));
-    } else {
-      setViewBox.apply(SVG, [svg$1].concat(_toConsumableArray(rect), [options.padding]));
-    }
-
-    var vmin = Math.min(rect[2], rect[3]);
-
-    if (vmin !== 0) {
-      svg$1.setAttribute("stroke-width", vmin / 100);
-    }
 
     if (options.output === "svg") {
       return svg$1;
@@ -1044,7 +1111,7 @@
       }
     }
 
-    throw new TypeError("couldn't recognize input. looking for string or object");
+    throw new TypeError("required 'String' or 'Object'");
   };
 
   var FoldToSvg = function FoldToSvg(input, options) {

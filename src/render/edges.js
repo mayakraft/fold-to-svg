@@ -1,3 +1,6 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import {
   line,
   path,
@@ -78,7 +81,8 @@ const segment_to_path = function (s) {
 };
 
 export const edges_path_data = function (graph) {
-  return edges_coords(graph).map(segment => segment_to_path(segment)).join("");
+  const path_data = edges_coords(graph).map(segment => segment_to_path(segment)).join("");
+  return path_data === "" ? undefined : path_data;
 };
 
 export const edges_by_assignment_paths_data = function (graph) {
@@ -109,7 +113,8 @@ export const edges_by_assignment_paths_data = function (graph) {
 export const edges_path = function (graph) {
   // no edges_assignment exists, create one large path
   if (graph.edges_assignment == null) {
-    return [path(edges_path_data(graph))];
+    const d = edges_path_data(graph);
+    return d === undefined ? [] : [path(d)];
   }
   // split up each path based on 
   const ds = edges_by_assignment_paths_data(graph);

@@ -3,7 +3,7 @@ const FoldToSvg = require("../fold-to-svg");
 
 test("invalid json", () => {
   try {
-    FoldToSvg.svg("{\"key\": invalid json}");
+    FoldToSvg("{\"key\": invalid json}");
     // invalid json should throw an error
   } catch (error) {
     // success. invalid json caught
