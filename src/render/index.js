@@ -26,11 +26,8 @@
  */
 
 import defaultStyle from "../styles/default.css";
-
 import vkXML from "../../include/vkbeautify-xml";
-
 import { shadowFilter } from "../svg/effects";
-
 import renderDiagrams from "./diagrams";
 
 // import {
@@ -41,14 +38,13 @@ import renderDiagrams from "./diagrams";
 //   svgFacesEdges,
 // } from "./components";
 
-
+import { boundaries_polygon } from "./boundaries";
 import { vertices_circle } from "./vertices";
 import { edges_path } from "./edges";
 import {
   faces_vertices_polygon,
   faces_edges_polygon
 } from "./faces";
-import { boundaries_polygon } from "./boundaries";
 
 import window from "../environment/window";
 
@@ -61,13 +57,6 @@ import {
   style,
   setViewBox,
 } from "../svg/svg";
-
-const DISPLAY_NAME = {
-  vertices: "vertices",
-  edges: "creases",
-  faces: "faces",
-  boundaries: "boundaries",
-};
 
 const svgFaces = function (graph) {
   if ("faces_vertices" in graph === true) {
@@ -85,7 +74,6 @@ const components = {
   faces: svgFaces,
   boundaries: boundaries_polygon,
 };
-
 
 const all_classes = function (graph) {
   const file_classes = (graph.file_classes != null
@@ -139,24 +127,28 @@ const fold_to_svg = function (fold, options = {}) {
     o.svg = svg();
   }
   // copy file/frame classes to top level
-  o.svg.setAttribute("class", all_classes(graph));
+  const classValue = all_classes(graph);
+  if (classValue !== "") { o.svg.setAttribute("class", classValue); }
   o.svg.setAttribute("width", o.width);
   o.svg.setAttribute("height", o.height);
 
-  const styleElement = style();
-  o.svg.appendChild(styleElement);
+  // const styleElement = style();
+  // o.svg.appendChild(styleElement);
 
   const groups = { };
   ["boundaries", "faces", "edges", "vertices"].filter(key => o[key])
     .forEach((key) => {
       groups[key] = group();
-      groups[key].setAttribute("class", DISPLAY_NAME[key]);
-      o.svg.appendChild(groups[key]);
+      groups[key].setAttribute("class", key);
     });
   // draw geometry into groups
   Object.keys(groups)
     .forEach(key => components[key](graph)
       .forEach(a => groups[key].appendChild(a)));
+
+  Object.keys(groups)
+    .filter(key => groups[key].childNodes.length > 0)
+    .forEach(key => o.svg.appendChild(groups[key]));
 
   // if exists, draw diagram instructions, arrows
   if ("re:diagrams" in graph && o.diagram) {
@@ -186,15 +178,15 @@ const fold_to_svg = function (fold, options = {}) {
   }
 
   // fill CSS style with --crease-width, and custom or a default style
-  if (o.inlineStyle) {
-    const vmin = rect[2] > rect[3] ? rect[3] : rect[2];
-    const innerStyle = `\nsvg { --crease-width: ${vmin * 0.005}; }\n${o.stylesheet}`;
-    // wrap style in CDATA section
-    const docu = (new window.DOMParser())
-      .parseFromString("<xml></xml>", "application/xml");
-    const cdata = docu.createCDATASection(innerStyle);
-    styleElement.appendChild(cdata);
-  }
+  // if (o.inlineStyle) {
+  //   const vmin = rect[2] > rect[3] ? rect[3] : rect[2];
+  //   const innerStyle = `\nsvg { --crease-width: ${vmin * 0.005}; }\n${o.stylesheet}`;
+  //   // wrap style in CDATA section
+  //   const docu = (new window.DOMParser())
+  //     .parseFromString("<xml></xml>", "application/xml");
+  //   const cdata = docu.createCDATASection(innerStyle);
+  //   styleElement.appendChild(cdata);
+  // }
 
   const stringified = (new window.XMLSerializer()).serializeToString(o.svg);
   const beautified = vkXML(stringified);

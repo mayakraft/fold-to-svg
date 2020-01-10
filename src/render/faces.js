@@ -45,7 +45,7 @@ export const faces_vertices_polygon = function (graph) {
   const svg_faces = graph.faces_vertices
     .map(fv => fv.map(v => graph.vertices_coords[v]))
     .map(face => polygon(face));
-  svg_faces.forEach((face, i) => face.setAttribute("id", `${i}`));
+  // svg_faces.forEach((face, i) => face.setAttribute("id", `${i}`));
   return finalize_faces(graph, svg_faces);
 };
 
@@ -63,6 +63,6 @@ export const faces_edges_polygon = function (graph) {
         return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
       }).map(v => graph.vertices_coords[v]))
     .map(face => polygon(face));
-  svg_faces.forEach((face, i) => face.setAttribute("id", `${i}`));
+  // svg_faces.forEach((face, i) => face.setAttribute("id", `${i}`));
   return finalize_faces(graph, svg_faces);
 };

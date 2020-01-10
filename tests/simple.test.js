@@ -2,7 +2,7 @@
 // ensuring all trivial cases are taken care of
 
 const fs = require("fs");
-const FOLDtoSVG = require("../fold-to-svg");
+const FoldToSvg = require("../fold-to-svg");
 
 const outputDir = "./tests/output";
 fs.existsSync(outputDir) || fs.mkdirSync(outputDir);
@@ -22,21 +22,21 @@ const one_edge = {
 };
 
 test("empty FOLD object", () => {
-  fs.writeFile("./tests/output/empty.svg", FOLDtoSVG(empty), (error) => {
+  fs.writeFile("./tests/output/empty.svg", FoldToSvg(empty), (error) => {
     if (error) { throw error; }
     expect(error).toBe(null);
   });
 });
 
 test("one vertex FOLD object", () => {
-  fs.writeFile("./tests/output/one-vertex.svg", FOLDtoSVG(one_vertex), (error) => {
+  fs.writeFile("./tests/output/one-vertex.svg", FoldToSvg(one_vertex), (error) => {
     if (error) { throw error; }
     expect(error).toBe(null);
   });
 });
 
 test("one edge FOLD object", () => {
-  fs.writeFile("./tests/output/one-edge.svg", FOLDtoSVG(one_edge), (error) => {
+  fs.writeFile("./tests/output/one-edge.svg", FoldToSvg(one_edge), (error) => {
     if (error) { throw error; }
     expect(error).toBe(null);
   });

@@ -1,7 +1,4 @@
-import {
-  bounding_rect,
-} from "../FOLD/boundary";
-
+import { bounding_rect } from "../FOLD/boundary";
 import {
   line,
   arcArrow,

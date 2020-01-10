@@ -3,7 +3,6 @@ import {
   path,
 } from "../svg/svg";
 
-
 const edges_assignment_names = {
   B: "boundary",
   b: "boundary",
