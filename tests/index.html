@@ -14,7 +14,7 @@ const singleVertexCPSVG = new DOMParser()
   .parseFromString(singleVertexCPString, "text/xml").documentElement;
 document.body.appendChild(singleVertexCPSVG);
 
-const singleVertexString = FoldToSvg(singleVertex, { frame: 1 });
+const singleVertexString = FoldToSvg(singleVertex, { file_frame: 1 });
 const singleVertexSVG = new DOMParser()
   .parseFromString(singleVertexString, "text/xml").documentElement;
 document.body.appendChild(singleVertexSVG);

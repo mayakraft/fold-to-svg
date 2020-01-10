@@ -1,8 +1,6 @@
 // boundary detection, removal, cleanup
 
-import { get_isolated_vertices } from "./query";
 import { make_vertices_edges } from "./make";
-import remove from "./remove";
 
 export const bounding_rect = function ({ vertices_coords }) {
   if (vertices_coords == null
@@ -61,21 +59,4 @@ export const get_boundary = function (graph) {
     vertices: vertex_walk,
     edges: edge_walk,
   };
-};
-
-/**
- * this removes all edges except for "B", boundary creases.
- * rebuilds the face, and
- * todo: removes a collinear vertex and merges the 2 boundary edges
- */
-export const remove_non_boundary_edges = function (graph) {
-  const remove_indices = graph.edges_assignment
-    .map(a => !(a === "b" || a === "B"))
-    .map((a, i) => (a ? i : undefined))
-    .filter(a => a !== undefined);
-  const edge_map = remove(graph, "edges", remove_indices);
-  const face = get_boundary(graph);
-  graph.faces_edges = [face.edges];
-  graph.faces_vertices = [face.vertices];
-  remove(graph, "vertices", get_isolated_vertices(graph));
 };
