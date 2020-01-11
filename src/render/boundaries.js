@@ -14,6 +14,7 @@ export const boundaries_polygon = function (graph) {
   const boundary = get_boundary(graph)
     .vertices
     .map(v => graph.vertices_coords[v]);
+  if (boundary.length === 0) { return []; }
   const p = polygon(boundary);
   p.setAttribute("class", "boundary");
   return [p];

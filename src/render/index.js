@@ -82,9 +82,21 @@ const makeDefaults = (vmin = 1) => recursive_freeze({
       fill: "black",
       /* these below will be applied onto specific elements */
       r: vmin / 100
-    }
+    },
+    boundaries: {},
   }
 });
+
+const recursiveAssign = function (target, source) {
+  Object.keys(source).forEach((key) => {
+    if (typeof source[key] === "object" && source[key] !== null) {
+      if (!(key in target)) { target[key] = {}; }
+      recursiveAssign(target[key], source[key])
+    } else if (!(key in target)) {
+      target[key] = source[key];
+    }
+  });
+};
 
 /**
  * options are, generally, to draw everything possible.
@@ -101,12 +113,7 @@ const fold_to_svg = function (input, options = {}) {
   const vmin = Math.min(bounds[2], bounds[3]);
 
   // sanitize options
-  const defaults = makeDefaults(vmin);
-  // todo: need to recursively copy over, if user specified 2 levels deep but not 3
-  // we still need to copy in that third level to guarantee it's there
-  Object.keys(defaults)
-    .filter(k => !(k in options))
-    .forEach((k) => { options[k] = defaults[k]});
+  recursiveAssign(options, makeDefaults(vmin));
 
   const svg = SVG.svg();
   SVG.setViewBox(svg, ...bounds, options.padding);
@@ -130,7 +137,10 @@ const fold_to_svg = function (input, options = {}) {
     style.appendChild(cdata);
   }
   if (options.shadows != null) {
-    defs.appendChild(shadowFilter());
+    const shadowOptions = (typeof options.shadows === "object" && options.shadows !== null
+      ? options.shadows
+      : { blur: vmin / 200 });
+    defs.appendChild(shadowFilter(shadowOptions));
   }
 
   // draw
@@ -168,6 +178,9 @@ const fold_to_svg = function (input, options = {}) {
     Array.from(groups.faces.childNodes)
       .forEach(child => Object.keys(options.attributes.faces[child.getAttribute("class")] || {})
         .forEach(key => child.setAttribute(key, options.attributes.faces[child.getAttribute("class")][key])));
+    if (options.shadows != null) {
+      Array.from(groups.faces.childNodes).forEach(f => f.setAttribute("filter", "url(#shadow)"));
+    }
   }
   // vertices. simpler, no classes
   if (groups.vertices) {
@@ -177,19 +190,16 @@ const fold_to_svg = function (input, options = {}) {
     Array.from(groups.vertices.childNodes)
       .forEach(child => child.setAttribute("r", options.attributes.vertices.r));
   }
+  // boundaries. simple.
+  if (groups.boundaries) {
+    Object.keys(options.attributes.boundaries)
+      .forEach(key => groups.boundaries.setAttribute(key, options.attributes.boundaries[key]));
+  }
   // if exists, draw diagram instructions, arrows
   // if ("re:diagrams" in graph && o.diagram) {
   //   const instructionLayer = group();
   //   svg.appendChild(instructionLayer);
   //   renderDiagrams(graph, instructionLayer);
-  // }
-
-  // if (o.shadows) {
-  //   const shadow_id = "face_shadow";
-  //   const filter = shadowFilter(shadow_id);
-  //   svg.appendChild(filter);
-  //   Array.from(groups.faces.childNodes)
-  //     .forEach(f => f.setAttribute("filter", `url(#${shadow_id})`));
   // }
 
   // return

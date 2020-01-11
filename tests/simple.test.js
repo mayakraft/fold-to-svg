@@ -25,7 +25,6 @@ test("two vertex FOLD object", () => {
   const twoVertexSvg = FoldToSvg(twoVertex, {output: "svg", vertices: true});
   expect(twoVertexSvg.childNodes.length).toBe(1);
   expect(twoVertexSvg.childNodes[0].childNodes.length).toBe(2);
-  fs.writeFile(`${outputDir}/two-vertices.svg`, FoldToSvg(twoVertex, {vertices: true}), () => {});
 });
 
 test("one edge FOLD object", () => {
@@ -35,6 +34,6 @@ test("one edge FOLD object", () => {
     edges_assignment: ["V"],
   };
   const oneEdgeSvg = FoldToSvg(oneEdge, {output: "svg"});
-  // expect(oneEdgeSvg.childNodes.length).toBe(1);
-  fs.writeFile(`${outputDir}/one-edge-1-1.svg`, FoldToSvg(oneEdge), () => {});
+  expect(oneEdgeSvg.childNodes.length).toBe(1);
+  expect(oneEdgeSvg.childNodes[0].childNodes.length).toBe(1);
 });

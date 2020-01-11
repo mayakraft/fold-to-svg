@@ -892,22 +892,38 @@
 
   var document = win.document;
   var svgNS$1 = "http://www.w3.org/2000/svg";
+  var shadow_defaults = Object.freeze({
+    blur: 0.005,
+    opacity: 0.3,
+    color: "#000"
+  });
   var shadowFilter = function shadowFilter() {
-    var id_name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "shadow";
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : shadow_defaults;
+    var id_name = "shadow";
+
+    if (_typeof(options) !== "object" || options === null) {
+      options = {};
+    }
+
+    Object.keys(shadow_defaults).filter(function (key) {
+      return !(key in options);
+    }).forEach(function (key) {
+      options[key] = shadow_defaults[key];
+    });
     var filter = document.createElementNS(svgNS$1, "filter");
     filter.setAttribute("width", "200%");
     filter.setAttribute("height", "200%");
     filter.setAttribute("id", id_name);
     var blur = document.createElementNS(svgNS$1, "feGaussianBlur");
     blur.setAttribute("in", "SourceAlpha");
-    blur.setAttribute("stdDeviation", "0.005");
+    blur.setAttribute("stdDeviation", options.blur);
     blur.setAttribute("result", "blur");
     var offset = document.createElementNS(svgNS$1, "feOffset");
     offset.setAttribute("in", "blur");
     offset.setAttribute("result", "offsetBlur");
     var flood = document.createElementNS(svgNS$1, "feFlood");
-    flood.setAttribute("flood-color", "#000");
-    flood.setAttribute("flood-opacity", "0.3");
+    flood.setAttribute("flood-color", options.color);
+    flood.setAttribute("flood-opacity", options.opacity);
     flood.setAttribute("result", "offsetColor");
     var composite = document.createElementNS(svgNS$1, "feComposite");
     composite.setAttribute("in", "offsetColor");
@@ -936,6 +952,11 @@
     var boundary = get_boundary(graph).vertices.map(function (v) {
       return graph.vertices_coords[v];
     });
+
+    if (boundary.length === 0) {
+      return [];
+    }
+
     var p = polygon(boundary);
     p.setAttribute("class", "boundary");
     return [p];
@@ -1005,7 +1026,22 @@
           stroke: "none",
           fill: "black",
           r: vmin / 100
+        },
+        boundaries: {}
+      }
+    });
+  };
+
+  var recursiveAssign = function recursiveAssign(target, source) {
+    Object.keys(source).forEach(function (key) {
+      if (_typeof(source[key]) === "object" && source[key] !== null) {
+        if (!(key in target)) {
+          target[key] = {};
         }
+
+        recursiveAssign(target[key], source[key]);
+      } else if (!(key in target)) {
+        target[key] = source[key];
       }
     });
   };
@@ -1015,12 +1051,7 @@
     var graph = typeof options.file_frame === "number" ? flatten_frame(input, options.file_frame) : input;
     var bounds = bounding_rect(graph);
     var vmin = Math.min(bounds[2], bounds[3]);
-    var defaults = makeDefaults(vmin);
-    Object.keys(defaults).filter(function (k) {
-      return !(k in options);
-    }).forEach(function (k) {
-      options[k] = defaults[k];
-    });
+    recursiveAssign(options, makeDefaults(vmin));
     var svg$1 = svg();
     setViewBox.apply(SVG, [svg$1].concat(_toConsumableArray(bounds), [options.padding]));
     var classValue = all_classes(graph);
@@ -1041,7 +1072,10 @@
     }
 
     if (options.shadows != null) {
-      defs$1.appendChild(shadowFilter());
+      var shadowOptions = _typeof(options.shadows) === "object" && options.shadows !== null ? options.shadows : {
+        blur: vmin / 200
+      };
+      defs$1.appendChild(shadowFilter(shadowOptions));
     }
 
     var groups = {};
@@ -1088,6 +1122,12 @@
           return child.setAttribute(key, options.attributes.faces[child.getAttribute("class")][key]);
         });
       });
+
+      if (options.shadows != null) {
+        Array.from(groups.faces.childNodes).forEach(function (f) {
+          return f.setAttribute("filter", "url(#shadow)");
+        });
+      }
     }
 
     if (groups.vertices) {
@@ -1098,6 +1138,12 @@
       });
       Array.from(groups.vertices.childNodes).forEach(function (child) {
         return child.setAttribute("r", options.attributes.vertices.r);
+      });
+    }
+
+    if (groups.boundaries) {
+      Object.keys(options.attributes.boundaries).forEach(function (key) {
+        return groups.boundaries.setAttribute(key, options.attributes.boundaries[key]);
       });
     }
 
