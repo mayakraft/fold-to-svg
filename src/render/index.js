@@ -37,39 +37,9 @@ const component_draw_function = {
   boundaries: boundaries_polygon,
 };
 
-const attributes = recursive_freeze({
-  svg: {
-    width: "500px",
-    height: "500px",
-    stroke: "black",
-    fill: "none",
-    "stroke-linejoin": "bevel",
-  },
-  groups: {
-    boundaries: {},
-    faces: { stroke: "none" },
-    edges: {},
-    vertices: { stroke: "none", fill: "black" },
-  },
-  faces: {
-    front: { stroke: "black", fill: "gray" },
-    back: { stroke: "black", fill: "white" },
-  },
-  edges: {
-    boundary: {},
-    mountain: { stroke: "red" },
-    valley: { stroke: "blue" },
-    mark: { stroke: "gray" },
-    unassigned: { stroke: "lightgray" },
-  }
-});
-
-const defaults = Object.freeze({
+const makeDefaults = (vmin = 1) => recursive_freeze({
   input: "string", // "string", "svg"
   output: "string", // "string", "svg"
-
-  // attributes style
-  attributes: attributes,
 
   padding: null,
   file_frame: null,
@@ -82,6 +52,38 @@ const defaults = Object.freeze({
   faces: true,
   edges: true,
   vertices: false,
+
+  // attributes style
+  attributes: {
+    svg: {
+      width: "500px",
+      height: "500px",
+      stroke: "black",
+      fill: "none",
+      "stroke-linejoin": "bevel",
+      "stroke-width": vmin / 100,
+    },
+    faces: {
+      stroke: "none",
+      /* these below will be applied onto specific elements based on class */
+      front: { stroke: "black", fill: "gray" },
+      back: { stroke: "black", fill: "white" },
+    },
+    edges: {
+      /* these below will be applied onto specific elements based on class */
+      boundary: {},
+      mountain: { stroke: "red" },
+      valley: { stroke: "blue" },
+      mark: { stroke: "gray" },
+      unassigned: { stroke: "lightgray" },
+    },
+    vertices: {
+      stroke: "none",
+      fill: "black",
+      /* these below will be applied onto specific elements */
+      r: vmin / 100
+    }
+  }
 });
 
 /**
@@ -90,23 +92,24 @@ const defaults = Object.freeze({
  *
  * input type should be "object". type should already be checked
  */
-const fold_to_svg = function (input, options = defaults) {
-  // sanitize options
-  Object.keys(defaults)
-    .filter(k => !(k in options))
-    .forEach((k) => { options[k] = defaults[k]});
-
+const fold_to_svg = function (input, options = {}) {
   // get the FOLD input
   const graph = (typeof options.file_frame === "number"
     ? flatten_frame(input, options.file_frame)
     : input);
-
-  const svg = SVG.svg();
   const bounds = bounding_rect(graph);
   const vmin = Math.min(bounds[2], bounds[3]);
+
+  // sanitize options
+  const defaults = makeDefaults(vmin);
+  // todo: need to recursively copy over, if user specified 2 levels deep but not 3
+  // we still need to copy in that third level to guarantee it's there
+  Object.keys(defaults)
+    .filter(k => !(k in options))
+    .forEach((k) => { options[k] = defaults[k]});
+
+  const svg = SVG.svg();
   SVG.setViewBox(svg, ...bounds, options.padding);
-  svg.setAttribute("stroke-width", vmin / 100);
-  // copy file/frame classes to top level
   const classValue = all_classes(graph);
   if (classValue !== "") { svg.setAttribute("class", classValue); }
 
@@ -118,12 +121,11 @@ const fold_to_svg = function (input, options = defaults) {
     ? SVG.defs(svg)
     : undefined);
   if (options.stylesheet != null) {
-    // const vmin = bounds[2] > bounds[3] ? bounds[3] : bounds[2];
-    // const innerStyle = `\nsvg { --crease-width: ${vmin * 0.005}; }\n${o.stylesheet}`;
     const style = SVG.style(defs);
     // wrap style in CDATA section
     const cdata = (new window.DOMParser())
       .parseFromString("<xml></xml>", "application/xml")
+      // `\nsvg { --crease-width: ${vmin * 0.005}; }\n${options.stylesheet}`
       .createCDATASection(options.stylesheet);
     style.appendChild(cdata);
   }
@@ -137,8 +139,6 @@ const fold_to_svg = function (input, options = defaults) {
     .forEach((key) => {
       groups[key] = SVG.group();
       groups[key].setAttribute("class", key);
-      Object.keys(options.attributes.groups[key])
-        .forEach(style => groups[key].setAttribute(style, options.attributes.groups[key][style]));
     });
   // draw geometry into groups
   Object.keys(groups)
@@ -150,17 +150,33 @@ const fold_to_svg = function (input, options = defaults) {
     .forEach(key => svg.appendChild(groups[key]));
 
   // apply specific style: edges
-  Object.keys(options.attributes.edges)
-    .forEach(assignment => Array.from(groups.edges.childNodes)
-      .filter(child => assignment === child.getAttribute("class"))
-      .forEach(child => Object.keys(options.attributes.edges[assignment])
-        .forEach(key => child.setAttribute(key, options.attributes.edges[assignment][key]))));
+  if (groups.edges) {
+    const edgeClasses = ["boundary", "mountain", "valley", "mark", "unassigned"];
+    Object.keys(options.attributes.edges)
+      .filter(key => !edgeClasses.includes(key))
+      .forEach(key => groups.edges.setAttribute(key, options.attributes.edges[key]));
+    Array.from(groups.edges.childNodes)
+      .forEach(child => Object.keys(options.attributes.edges[child.getAttribute("class")] || {})
+        .forEach(key => child.setAttribute(key, options.attributes.edges[child.getAttribute("class")][key])));
+  }
   // faces
-  Object.keys(options.attributes.faces)
-    .forEach(assignment => Array.from(groups.faces.childNodes)
-      .filter(child => assignment === child.getAttribute("class"))
-      .forEach(child => Object.keys(options.attributes.faces[assignment])
-        .forEach(key => child.setAttribute(key, options.attributes.faces[assignment][key]))));
+  if (groups.faces) {
+    const faceClasses = ["front", "back"];
+    Object.keys(options.attributes.faces)
+      .filter(key => !faceClasses.includes(key))
+      .forEach(key => groups.faces.setAttribute(key, options.attributes.faces[key]));
+    Array.from(groups.faces.childNodes)
+      .forEach(child => Object.keys(options.attributes.faces[child.getAttribute("class")] || {})
+        .forEach(key => child.setAttribute(key, options.attributes.faces[child.getAttribute("class")][key])));
+  }
+  // vertices. simpler, no classes
+  if (groups.vertices) {
+    Object.keys(options.attributes.vertices)
+      .filter(key => key !== "r")
+      .forEach(key => groups.vertices.setAttribute(key, options.attributes.vertices[key]));
+    Array.from(groups.vertices.childNodes)
+      .forEach(child => child.setAttribute("r", options.attributes.vertices.r));
+  }
   // if exists, draw diagram instructions, arrows
   // if ("re:diagrams" in graph && o.diagram) {
   //   const instructionLayer = group();

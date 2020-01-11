@@ -4,7 +4,6 @@ const outputDir = "./tests/output";
 fs.existsSync(outputDir) || fs.mkdirSync(outputDir);
 
 // this tests extremely simple fold files and trivial cases
-
 test("empty FOLD object", () => {
   const emptySvg = FoldToSvg({}, {output: "svg"});
   expect(emptySvg.childNodes.length).toBe(0);
@@ -17,8 +16,8 @@ test("one vertex FOLD object", () => {
   expect(oneVertexSvgHidden.childNodes.length).toBe(0);
   const oneVertexSvgVisible = FoldToSvg(oneVertex, {output: "svg", vertices: true});
   expect(oneVertexSvgVisible.childNodes.length).toBe(1);
-  fs.writeFile(`${outputDir}/one-vertex-hidden.svg`, FoldToSvg(oneVertex), () => {});
-  fs.writeFile(`${outputDir}/one-vertex-visible.svg`, FoldToSvg(oneVertex, {vertices: true}), () => {});
+  expect(oneVertexSvgHidden.getAttribute("viewBox")).toBe("0.5 0.5 0 0");
+  expect(oneVertexSvgVisible.getAttribute("viewBox")).toBe("0.5 0.5 0 0");
 });
 
 test("two vertex FOLD object", () => {
@@ -26,7 +25,7 @@ test("two vertex FOLD object", () => {
   const twoVertexSvg = FoldToSvg(twoVertex, {output: "svg", vertices: true});
   expect(twoVertexSvg.childNodes.length).toBe(1);
   expect(twoVertexSvg.childNodes[0].childNodes.length).toBe(2);
-  fs.writeFile(`${outputDir}/two-vertex.svg`, FoldToSvg(twoVertex, {vertices: true}), () => {});
+  fs.writeFile(`${outputDir}/two-vertices.svg`, FoldToSvg(twoVertex, {vertices: true}), () => {});
 });
 
 test("one edge FOLD object", () => {

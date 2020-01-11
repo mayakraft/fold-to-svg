@@ -10,7 +10,7 @@ export const vertices_circle = function (graph, options) {
   const radius = options && options.radius ? options.radius : 0.01;
   const svg_vertices = graph.vertices_coords
     .map(v => circle(v[0], v[1], radius));
-  svg_vertices.forEach((c, i) => c.setAttribute("id", `${i}`));
+  svg_vertices.forEach((c, i) => c.setAttribute("index", i));
   return svg_vertices;
 };
 

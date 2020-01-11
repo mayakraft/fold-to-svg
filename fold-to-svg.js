@@ -292,7 +292,7 @@
       return circle(v[0], v[1], radius);
     });
     svg_vertices.forEach(function (c, i) {
-      return c.setAttribute("id", "".concat(i));
+      return c.setAttribute("index", i);
     });
     return svg_vertices;
   };
@@ -951,79 +951,78 @@
     faces: faces_draw_function,
     boundaries: boundaries_polygon
   };
-  var attributes = recursive_freeze({
-    svg: {
-      width: "500px",
-      height: "500px",
-      stroke: "black",
-      fill: "none",
-      "stroke-linejoin": "bevel"
-    },
-    groups: {
-      boundaries: {},
-      faces: {
-        stroke: "none"
-      },
-      edges: {},
-      vertices: {
-        stroke: "none",
-        fill: "black"
+
+  var makeDefaults = function makeDefaults() {
+    var vmin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+    return recursive_freeze({
+      input: "string",
+      output: "string",
+      padding: null,
+      file_frame: null,
+      stylesheet: null,
+      shadows: null,
+      diagrams: true,
+      boundaries: true,
+      faces: true,
+      edges: true,
+      vertices: false,
+      attributes: {
+        svg: {
+          width: "500px",
+          height: "500px",
+          stroke: "black",
+          fill: "none",
+          "stroke-linejoin": "bevel",
+          "stroke-width": vmin / 100
+        },
+        faces: {
+          stroke: "none",
+          front: {
+            stroke: "black",
+            fill: "gray"
+          },
+          back: {
+            stroke: "black",
+            fill: "white"
+          }
+        },
+        edges: {
+          boundary: {},
+          mountain: {
+            stroke: "red"
+          },
+          valley: {
+            stroke: "blue"
+          },
+          mark: {
+            stroke: "gray"
+          },
+          unassigned: {
+            stroke: "lightgray"
+          }
+        },
+        vertices: {
+          stroke: "none",
+          fill: "black",
+          r: vmin / 100
+        }
       }
-    },
-    faces: {
-      front: {
-        stroke: "black",
-        fill: "gray"
-      },
-      back: {
-        stroke: "black",
-        fill: "white"
-      }
-    },
-    edges: {
-      boundary: {},
-      mountain: {
-        stroke: "red"
-      },
-      valley: {
-        stroke: "blue"
-      },
-      mark: {
-        stroke: "gray"
-      },
-      unassigned: {
-        stroke: "lightgray"
-      }
-    }
-  });
-  var defaults = Object.freeze({
-    input: "string",
-    output: "string",
-    attributes: attributes,
-    padding: null,
-    file_frame: null,
-    stylesheet: null,
-    shadows: null,
-    diagrams: true,
-    boundaries: true,
-    faces: true,
-    edges: true,
-    vertices: false
-  });
+    });
+  };
 
   var fold_to_svg = function fold_to_svg(input) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defaults;
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var graph = typeof options.file_frame === "number" ? flatten_frame(input, options.file_frame) : input;
+    var bounds = bounding_rect(graph);
+    var vmin = Math.min(bounds[2], bounds[3]);
+    var defaults = makeDefaults(vmin);
     Object.keys(defaults).filter(function (k) {
       return !(k in options);
     }).forEach(function (k) {
       options[k] = defaults[k];
     });
-    var graph = typeof options.file_frame === "number" ? flatten_frame(input, options.file_frame) : input;
     var svg$1 = svg();
-    var bounds = bounding_rect(graph);
-    var vmin = Math.min(bounds[2], bounds[3]);
     setViewBox.apply(SVG, [svg$1].concat(_toConsumableArray(bounds), [options.padding]));
-    svg$1.setAttribute("stroke-width", vmin / 100);
     var classValue = all_classes(graph);
 
     if (classValue !== "") {
@@ -1051,9 +1050,6 @@
     }).forEach(function (key) {
       groups[key] = group();
       groups[key].setAttribute("class", key);
-      Object.keys(options.attributes.groups[key]).forEach(function (style) {
-        return groups[key].setAttribute(style, options.attributes.groups[key][style]);
-      });
     });
     Object.keys(groups).forEach(function (key) {
       return component_draw_function[key](graph, options).forEach(function (a) {
@@ -1065,24 +1061,45 @@
     }).forEach(function (key) {
       return svg$1.appendChild(groups[key]);
     });
-    Object.keys(options.attributes.edges).forEach(function (assignment) {
-      return Array.from(groups.edges.childNodes).filter(function (child) {
-        return assignment === child.getAttribute("class");
-      }).forEach(function (child) {
-        return Object.keys(options.attributes.edges[assignment]).forEach(function (key) {
-          return child.setAttribute(key, options.attributes.edges[assignment][key]);
+
+    if (groups.edges) {
+      var edgeClasses = ["boundary", "mountain", "valley", "mark", "unassigned"];
+      Object.keys(options.attributes.edges).filter(function (key) {
+        return !edgeClasses.includes(key);
+      }).forEach(function (key) {
+        return groups.edges.setAttribute(key, options.attributes.edges[key]);
+      });
+      Array.from(groups.edges.childNodes).forEach(function (child) {
+        return Object.keys(options.attributes.edges[child.getAttribute("class")] || {}).forEach(function (key) {
+          return child.setAttribute(key, options.attributes.edges[child.getAttribute("class")][key]);
         });
       });
-    });
-    Object.keys(options.attributes.faces).forEach(function (assignment) {
-      return Array.from(groups.faces.childNodes).filter(function (child) {
-        return assignment === child.getAttribute("class");
-      }).forEach(function (child) {
-        return Object.keys(options.attributes.faces[assignment]).forEach(function (key) {
-          return child.setAttribute(key, options.attributes.faces[assignment][key]);
+    }
+
+    if (groups.faces) {
+      var faceClasses = ["front", "back"];
+      Object.keys(options.attributes.faces).filter(function (key) {
+        return !faceClasses.includes(key);
+      }).forEach(function (key) {
+        return groups.faces.setAttribute(key, options.attributes.faces[key]);
+      });
+      Array.from(groups.faces.childNodes).forEach(function (child) {
+        return Object.keys(options.attributes.faces[child.getAttribute("class")] || {}).forEach(function (key) {
+          return child.setAttribute(key, options.attributes.faces[child.getAttribute("class")][key]);
         });
       });
-    });
+    }
+
+    if (groups.vertices) {
+      Object.keys(options.attributes.vertices).filter(function (key) {
+        return key !== "r";
+      }).forEach(function (key) {
+        return groups.vertices.setAttribute(key, options.attributes.vertices[key]);
+      });
+      Array.from(groups.vertices.childNodes).forEach(function (child) {
+        return child.setAttribute("r", options.attributes.vertices.r);
+      });
+    }
 
     if (options.output === "svg") {
       return svg$1;
