@@ -6,7 +6,20 @@ import window from "../environment/window";
 const { document } = window;
 const svgNS = "http://www.w3.org/2000/svg";
 
-export const shadowFilter = function (id_name = "shadow") {
+const shadow_defaults = Object.freeze({
+  blur: 0.005,
+  opacity: 0.3,
+  color: "#000",
+});
+
+export const shadowFilter = function (options = shadow_defaults) {
+  const id_name = "shadow";
+
+  if (typeof options !== "object" || options === null) { options = {}; }
+  Object.keys(shadow_defaults)
+    .filter(key => !(key in options))
+    .forEach((key) => { options[key] = shadow_defaults[key]; });
+
   const filter = document.createElementNS(svgNS, "filter");
   filter.setAttribute("width", "200%");
   filter.setAttribute("height", "200%");
@@ -14,7 +27,7 @@ export const shadowFilter = function (id_name = "shadow") {
 
   const blur = document.createElementNS(svgNS, "feGaussianBlur");
   blur.setAttribute("in", "SourceAlpha");
-  blur.setAttribute("stdDeviation", "0.005");
+  blur.setAttribute("stdDeviation", options.blur);
   blur.setAttribute("result", "blur");
 
   const offset = document.createElementNS(svgNS, "feOffset");
@@ -22,8 +35,8 @@ export const shadowFilter = function (id_name = "shadow") {
   offset.setAttribute("result", "offsetBlur");
 
   const flood = document.createElementNS(svgNS, "feFlood");
-  flood.setAttribute("flood-color", "#000");
-  flood.setAttribute("flood-opacity", "0.3");
+  flood.setAttribute("flood-color", options.color);
+  flood.setAttribute("flood-opacity", options.opacity);
   flood.setAttribute("result", "offsetColor");
 
   const composite = document.createElementNS(svgNS, "feComposite");

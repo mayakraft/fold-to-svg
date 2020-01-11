@@ -1,5 +1,6 @@
 const FoldToSvg = require("../fold-to-svg");
 
+// abstract graphs should show up as empty SVGs
 test("abstract graph test", () => {
   const abstractGraph = {
     edges_vertices:[[0,1], [1,2], [2,3]],

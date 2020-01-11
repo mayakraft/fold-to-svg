@@ -292,7 +292,7 @@
       return circle(v[0], v[1], radius);
     });
     svg_vertices.forEach(function (c, i) {
-      return c.setAttribute("id", "".concat(i));
+      return c.setAttribute("index", i);
     });
     return svg_vertices;
   };
@@ -892,22 +892,38 @@
 
   var document = win.document;
   var svgNS$1 = "http://www.w3.org/2000/svg";
+  var shadow_defaults = Object.freeze({
+    blur: 0.005,
+    opacity: 0.3,
+    color: "#000"
+  });
   var shadowFilter = function shadowFilter() {
-    var id_name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "shadow";
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : shadow_defaults;
+    var id_name = "shadow";
+
+    if (_typeof(options) !== "object" || options === null) {
+      options = {};
+    }
+
+    Object.keys(shadow_defaults).filter(function (key) {
+      return !(key in options);
+    }).forEach(function (key) {
+      options[key] = shadow_defaults[key];
+    });
     var filter = document.createElementNS(svgNS$1, "filter");
     filter.setAttribute("width", "200%");
     filter.setAttribute("height", "200%");
     filter.setAttribute("id", id_name);
     var blur = document.createElementNS(svgNS$1, "feGaussianBlur");
     blur.setAttribute("in", "SourceAlpha");
-    blur.setAttribute("stdDeviation", "0.005");
+    blur.setAttribute("stdDeviation", options.blur);
     blur.setAttribute("result", "blur");
     var offset = document.createElementNS(svgNS$1, "feOffset");
     offset.setAttribute("in", "blur");
     offset.setAttribute("result", "offsetBlur");
     var flood = document.createElementNS(svgNS$1, "feFlood");
-    flood.setAttribute("flood-color", "#000");
-    flood.setAttribute("flood-opacity", "0.3");
+    flood.setAttribute("flood-color", options.color);
+    flood.setAttribute("flood-opacity", options.opacity);
     flood.setAttribute("result", "offsetColor");
     var composite = document.createElementNS(svgNS$1, "feComposite");
     composite.setAttribute("in", "offsetColor");
@@ -936,6 +952,11 @@
     var boundary = get_boundary(graph).vertices.map(function (v) {
       return graph.vertices_coords[v];
     });
+
+    if (boundary.length === 0) {
+      return [];
+    }
+
     var p = polygon(boundary);
     p.setAttribute("class", "boundary");
     return [p];
@@ -951,79 +972,88 @@
     faces: faces_draw_function,
     boundaries: boundaries_polygon
   };
-  var attributes = recursive_freeze({
-    svg: {
-      width: "500px",
-      height: "500px",
-      stroke: "black",
-      fill: "none",
-      "stroke-linejoin": "bevel"
-    },
-    groups: {
-      boundaries: {},
-      faces: {
-        stroke: "none"
-      },
-      edges: {},
-      vertices: {
-        stroke: "none",
-        fill: "black"
+
+  var makeDefaults = function makeDefaults() {
+    var vmin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+    return recursive_freeze({
+      input: "string",
+      output: "string",
+      padding: null,
+      file_frame: null,
+      stylesheet: null,
+      shadows: null,
+      diagrams: true,
+      boundaries: true,
+      faces: true,
+      edges: true,
+      vertices: false,
+      attributes: {
+        svg: {
+          width: "500px",
+          height: "500px",
+          stroke: "black",
+          fill: "none",
+          "stroke-linejoin": "bevel",
+          "stroke-width": vmin / 100
+        },
+        faces: {
+          stroke: "none",
+          front: {
+            stroke: "black",
+            fill: "gray"
+          },
+          back: {
+            stroke: "black",
+            fill: "white"
+          }
+        },
+        edges: {
+          boundary: {},
+          mountain: {
+            stroke: "red"
+          },
+          valley: {
+            stroke: "blue"
+          },
+          mark: {
+            stroke: "gray"
+          },
+          unassigned: {
+            stroke: "lightgray"
+          }
+        },
+        vertices: {
+          stroke: "none",
+          fill: "black",
+          r: vmin / 100
+        },
+        boundaries: {}
       }
-    },
-    faces: {
-      front: {
-        stroke: "black",
-        fill: "gray"
-      },
-      back: {
-        stroke: "black",
-        fill: "white"
+    });
+  };
+
+  var recursiveAssign = function recursiveAssign(target, source) {
+    Object.keys(source).forEach(function (key) {
+      if (_typeof(source[key]) === "object" && source[key] !== null) {
+        if (!(key in target)) {
+          target[key] = {};
+        }
+
+        recursiveAssign(target[key], source[key]);
+      } else if (!(key in target)) {
+        target[key] = source[key];
       }
-    },
-    edges: {
-      boundary: {},
-      mountain: {
-        stroke: "red"
-      },
-      valley: {
-        stroke: "blue"
-      },
-      mark: {
-        stroke: "gray"
-      },
-      unassigned: {
-        stroke: "lightgray"
-      }
-    }
-  });
-  var defaults = Object.freeze({
-    input: "string",
-    output: "string",
-    attributes: attributes,
-    padding: null,
-    file_frame: null,
-    stylesheet: null,
-    shadows: null,
-    diagrams: true,
-    boundaries: true,
-    faces: true,
-    edges: true,
-    vertices: false
-  });
+    });
+  };
 
   var fold_to_svg = function fold_to_svg(input) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : defaults;
-    Object.keys(defaults).filter(function (k) {
-      return !(k in options);
-    }).forEach(function (k) {
-      options[k] = defaults[k];
-    });
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
     var graph = typeof options.file_frame === "number" ? flatten_frame(input, options.file_frame) : input;
-    var svg$1 = svg();
     var bounds = bounding_rect(graph);
     var vmin = Math.min(bounds[2], bounds[3]);
+    recursiveAssign(options, makeDefaults(vmin));
+    var svg$1 = svg();
     setViewBox.apply(SVG, [svg$1].concat(_toConsumableArray(bounds), [options.padding]));
-    svg$1.setAttribute("stroke-width", vmin / 100);
     var classValue = all_classes(graph);
 
     if (classValue !== "") {
@@ -1042,7 +1072,10 @@
     }
 
     if (options.shadows != null) {
-      defs$1.appendChild(shadowFilter());
+      var shadowOptions = _typeof(options.shadows) === "object" && options.shadows !== null ? options.shadows : {
+        blur: vmin / 200
+      };
+      defs$1.appendChild(shadowFilter(shadowOptions));
     }
 
     var groups = {};
@@ -1051,9 +1084,6 @@
     }).forEach(function (key) {
       groups[key] = group();
       groups[key].setAttribute("class", key);
-      Object.keys(options.attributes.groups[key]).forEach(function (style) {
-        return groups[key].setAttribute(style, options.attributes.groups[key][style]);
-      });
     });
     Object.keys(groups).forEach(function (key) {
       return component_draw_function[key](graph, options).forEach(function (a) {
@@ -1065,24 +1095,57 @@
     }).forEach(function (key) {
       return svg$1.appendChild(groups[key]);
     });
-    Object.keys(options.attributes.edges).forEach(function (assignment) {
-      return Array.from(groups.edges.childNodes).filter(function (child) {
-        return assignment === child.getAttribute("class");
-      }).forEach(function (child) {
-        return Object.keys(options.attributes.edges[assignment]).forEach(function (key) {
-          return child.setAttribute(key, options.attributes.edges[assignment][key]);
+
+    if (groups.edges) {
+      var edgeClasses = ["boundary", "mountain", "valley", "mark", "unassigned"];
+      Object.keys(options.attributes.edges).filter(function (key) {
+        return !edgeClasses.includes(key);
+      }).forEach(function (key) {
+        return groups.edges.setAttribute(key, options.attributes.edges[key]);
+      });
+      Array.from(groups.edges.childNodes).forEach(function (child) {
+        return Object.keys(options.attributes.edges[child.getAttribute("class")] || {}).forEach(function (key) {
+          return child.setAttribute(key, options.attributes.edges[child.getAttribute("class")][key]);
         });
       });
-    });
-    Object.keys(options.attributes.faces).forEach(function (assignment) {
-      return Array.from(groups.faces.childNodes).filter(function (child) {
-        return assignment === child.getAttribute("class");
-      }).forEach(function (child) {
-        return Object.keys(options.attributes.faces[assignment]).forEach(function (key) {
-          return child.setAttribute(key, options.attributes.faces[assignment][key]);
+    }
+
+    if (groups.faces) {
+      var faceClasses = ["front", "back"];
+      Object.keys(options.attributes.faces).filter(function (key) {
+        return !faceClasses.includes(key);
+      }).forEach(function (key) {
+        return groups.faces.setAttribute(key, options.attributes.faces[key]);
+      });
+      Array.from(groups.faces.childNodes).forEach(function (child) {
+        return Object.keys(options.attributes.faces[child.getAttribute("class")] || {}).forEach(function (key) {
+          return child.setAttribute(key, options.attributes.faces[child.getAttribute("class")][key]);
         });
       });
-    });
+
+      if (options.shadows != null) {
+        Array.from(groups.faces.childNodes).forEach(function (f) {
+          return f.setAttribute("filter", "url(#shadow)");
+        });
+      }
+    }
+
+    if (groups.vertices) {
+      Object.keys(options.attributes.vertices).filter(function (key) {
+        return key !== "r";
+      }).forEach(function (key) {
+        return groups.vertices.setAttribute(key, options.attributes.vertices[key]);
+      });
+      Array.from(groups.vertices.childNodes).forEach(function (child) {
+        return child.setAttribute("r", options.attributes.vertices.r);
+      });
+    }
+
+    if (groups.boundaries) {
+      Object.keys(options.attributes.boundaries).forEach(function (key) {
+        return groups.boundaries.setAttribute(key, options.attributes.boundaries[key]);
+      });
+    }
 
     if (options.output === "svg") {
       return svg$1;
