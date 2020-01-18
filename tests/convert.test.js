@@ -25,11 +25,3 @@ test("load and convert crane without style", () => {
   fs.writeFile(`${outputDir}/cp-crane.svg`, craneSVG, () => {});
   fs.writeFile(`${outputDir}/cp-crane-style.svg`, craneSVGStyled, () => {});
 });
-
-test("load and convert 3", () => {
-  fs.readFile("./tests/examples/diagram.fold", "utf8", (err, data) => {
-    const diagram = JSON.parse(data);
-    const svg = FoldToSvg(diagram, { file_frame: 1, padding: 0.02 });
-    fs.writeFile(`${outputDir}/diagram-step.svg`, svg, () => {});
-  });
-});

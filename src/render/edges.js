@@ -1,10 +1,7 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import {
-  line,
-  path,
-} from "../svg/svg";
+import { line, path } from "../svg/svg";
 
 const edges_assignment_names = {
   B: "boundary",
@@ -46,7 +43,7 @@ const edges_coords = function ({ vertices_coords, edges_vertices }) {
  * arrays contain the unique indices of each edge from the edges_ arrays sorted by assignment
  */
 const edges_indices_classes = function ({ edges_assignment }) {
-  const assignment_indices = {b:[], m:[], v:[], f:[], u:[]};
+  const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
   edges_assignment.map(a => edges_assignment_to_lowercase[a])
     .forEach((a, i) => assignment_indices[a].push(i));
   return assignment_indices;
