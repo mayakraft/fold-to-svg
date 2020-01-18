@@ -1335,7 +1335,8 @@
 
     if (options.stylesheet != null) {
       var style$1 = style(defs$1);
-      var cdata = new win.DOMParser().parseFromString("<xml></xml>", "application/xml").createCDATASection(options.stylesheet);
+      var strokeVar = options.attributes.svg["stroke-width"] ? options.attributes.svg["stroke-width"] : vmin / 200;
+      var cdata = new win.DOMParser().parseFromString("<xml></xml>", "application/xml").createCDATASection("\n* { --stroke-width: ".concat(strokeVar, "; }\n").concat(options.stylesheet));
       style$1.appendChild(cdata);
     }
 

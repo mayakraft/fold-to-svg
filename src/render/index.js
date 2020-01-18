@@ -133,10 +133,11 @@ const fold_to_svg = function (input, options = {}) {
   if (options.stylesheet != null) {
     const style = SVG.style(defs);
     // wrap style in CDATA section
+    const strokeVar = options.attributes.svg["stroke-width"]
+      ? options.attributes.svg["stroke-width"] : vmin / 200;
     const cdata = (new window.DOMParser())
       .parseFromString("<xml></xml>", "application/xml")
-      // `\nsvg { --crease-width: ${vmin * 0.005}; }\n${options.stylesheet}`
-      .createCDATASection(options.stylesheet);
+      .createCDATASection(`\n* { --stroke-width: ${strokeVar}; }\n${options.stylesheet}`);
     style.appendChild(cdata);
   }
   if (options.shadows != null) {
