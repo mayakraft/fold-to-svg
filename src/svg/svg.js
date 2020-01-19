@@ -62,9 +62,6 @@ export const circle = function (x, y, radius) {
 export const polygon = function (pointsArray) {
   const shape = window.document.createElementNS(svgNS, "polygon");
   const pointsString = pointsArray.map(p => `${p[0]},${p[1]}`).join(" ");
-    // .reduce((a, b) => `${a}${b[0]},${b[1]} `, "");
-  // const pointsString = pointsArray
-  //   .reduce((a, b) => `${a}${b[0]},${b[1]} `, "");
   shape.setAttributeNS(null, "points", pointsString);
   return shape;
 };
@@ -81,149 +78,239 @@ export const bezier = function (fromX, fromY, c1X, c1Y, c2X, c2Y, toX, toY) {
   return path(`M ${pts[0]} C ${pts[1]} ${pts[2]} ${pts[3]}`);
 };
 
-export const arcArrow = function (start, end, options) {
-  // options:
-  // - padding: the arrow backs off from the target by a tiny fraction
-  // - color
-  const p = {
-    color: "#000", // css
-    strokeWidth: 0.5, // css
-    width: 0.5, // pixels. of the arrow head
-    length: 2, // pixels. of the arrow head
-    bend: 0.3, // %
-    pinch: 0.618, // %
-    padding: 0.5, // % of the arrow head "length"
-    side: true,
-    start: false,
-    end: true,
-    strokeStyle: "",
-    fillStyle: "",
-  };
-
-  if (typeof options === "object" && options !== null) {
-    Object.assign(p, options);
+const is_iterable = obj => obj != null
+  && typeof obj[Symbol.iterator] === "function";
+const flatten_input = function (...args) {
+  switch (args.length) {
+    case undefined:
+    case 0: return args;
+    // only if its an array (is iterable) and NOT a string
+    case 1: return is_iterable(args[0]) && typeof args[0] !== "string"
+      ? flatten_input(...args[0])
+      : [args[0]];
+    default:
+      return Array.from(args)
+        .map(a => (is_iterable(a)
+          ? [...flatten_input(a)]
+          : a))
+        .reduce((a, b) => a.concat(b), []);
   }
+};
 
-  const arrowFill = [
-    "stroke:none",
-    `fill:${p.color}`,
-    p.fillStyle,
-  ].filter(a => a !== "").join(";");
+const setPoints = function (shape, ...pointsArray) {
+  const flat = flatten_input(...pointsArray);
+  let pointsString = "";
+  if (typeof flat[0] === "number") {
+    pointsString = Array.from(Array(Math.floor(flat.length / 2)))
+      .reduce((a, b, i) => `${a}${flat[i * 2]},${flat[i * 2 + 1]} `, "");
+  }
+  if (typeof flat[0] === "object") {
+    if (typeof flat[0].x === "number") {
+      pointsString = flat.reduce((prev, curr) => `${prev}${curr.x},${curr.y} `, "");
+    }
+    if (typeof flat[0][0] === "number") {
+      pointsString = flat.reduce((prev, curr) => `${prev}${curr[0]},${curr[1]} `, "");
+    }
+  }
+  shape.setAttributeNS(null, "points", pointsString);
+  return shape;
+};
 
-  const arrowStroke = [
-    "fill:none",
-    `stroke:${p.color}`,
-    `stroke-width:${p.strokeWidth}`,
-    p.strokeStyle,
-  ].filter(a => a !== "").join(";");
+const setArrowPoints = function (shape, ...args) {
+  const children = Array.from(shape.childNodes);
+  const path = children.filter(node => node.tagName === "path").shift();
+  const polys = ["svg-arrow-head", "svg-arrow-tail"]
+    .map(c => children.filter(n => n.getAttribute("class") === c).shift());
 
-  let startPoint = start;
-  let endPoint = end;
-  let vector = [endPoint[0] - startPoint[0], endPoint[1] - startPoint[1]];
-  let midpoint = [startPoint[0] + vector[0] / 2, startPoint[1] + vector[1] / 2];
+  const flat = flatten_input(...args);
+  let endpoints = [];
+  if (typeof flat[0] === "number") {
+    endpoints = flat;
+  }
+  if (typeof flat[0] === "object") {
+    if (typeof flat[0].x === "number") {
+      endpoints = flat.map(p => [p[0], p[1]]).reduce((a, b) => a.concat(b), []);
+    }
+    if (typeof flat[0][0] === "number") {
+      endpoints = flat.reduce((a, b) => a.concat(b), []);
+    }
+  }
+  if (!endpoints.length && shape.endpoints != null) {
+    // get endpoints from cache
+    endpoints = shape.endpoints;
+  }
+  if (!endpoints.length) { return shape; }
+  // we have to cache the endpoints in case we need to rebuild
+  shape.endpoints = endpoints;
+
+  const o = shape.options;
+
+  let tailPt = [endpoints[0], endpoints[1]];
+  let headPt = [endpoints[2], endpoints[3]];
+  let vector = [headPt[0] - tailPt[0], headPt[1] - tailPt[1]];
+  let midpoint = [tailPt[0] + vector[0] / 2, tailPt[1] + vector[1] / 2];
   // make sure arrow isn't too small
-  const len = Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-  const minLength = (p.start ? (1 + p.padding) : 0 + p.end ? (1 + p.padding) : 0)
-    * p.length * 2.5;
+  const len = Math.sqrt((vector[0] ** 2) + (vector[1] ** 2));
+  const minLength = (
+    (o.tail.visible ? (1 + o.tail.padding) * o.tail.height * 2.5 : 0)
+  + (o.head.visible ? (1 + o.head.padding) * o.head.height * 2.5 : 0)
+  );
   if (len < minLength) {
-    const minVec = [vector[0] / len * minLength, vector[1] / len * minLength];
-    startPoint = [midpoint[0] - minVec[0] * 0.5, midpoint[1] - minVec[1] * 0.5];
-    endPoint = [midpoint[0] + minVec[0] * 0.5, midpoint[1] + minVec[1] * 0.5];
-    vector = [endPoint[0] - startPoint[0], endPoint[1] - startPoint[1]];
+    const minVec = len === 0 // exactly 0. don't use epsilon here
+      ? [minLength, 0]
+      : [vector[0] / len * minLength, vector[1] / len * minLength];
+    tailPt = [midpoint[0] - minVec[0] * 0.5, midpoint[1] - minVec[1] * 0.5];
+    headPt = [midpoint[0] + minVec[0] * 0.5, midpoint[1] + minVec[1] * 0.5];
+    vector = [headPt[0] - tailPt[0], headPt[1] - tailPt[1]];
   }
   let perpendicular = [vector[1], -vector[0]];
   let bezPoint = [
-    midpoint[0] + perpendicular[0] * (p.side ? 1 : -1) * p.bend,
-    midpoint[1] + perpendicular[1] * (p.side ? 1 : -1) * p.bend
+    midpoint[0] + perpendicular[0] * o.curve,
+    midpoint[1] + perpendicular[1] * o.curve
   ];
 
-  const bezStart = [bezPoint[0] - startPoint[0], bezPoint[1] - startPoint[1]];
-  const bezEnd = [bezPoint[0] - endPoint[0], bezPoint[1] - endPoint[1]];
-  const bezStartLen = Math.sqrt(bezStart[0] * bezStart[0] + bezStart[1] * bezStart[1]);
-  const bezEndLen = Math.sqrt(bezEnd[0] * bezEnd[0] + bezEnd[1] * bezEnd[1]);
-  const bezStartNorm = [bezStart[0] / bezStartLen, bezStart[1] / bezStartLen];
-  const bezEndNorm = [bezEnd[0] / bezEndLen, bezEnd[1] / bezEndLen];
-  const startHeadVec = [-bezStartNorm[0], -bezStartNorm[1]];
-  const endHeadVec = [-bezEndNorm[0], -bezEndNorm[1]];
-  const startNormal = [startHeadVec[1], -startHeadVec[0]];
-  const endNormal = [endHeadVec[1], -endHeadVec[0]];
+  const bezTail = [bezPoint[0] - tailPt[0], bezPoint[1] - tailPt[1]];
+  const bezHead = [bezPoint[0] - headPt[0], bezPoint[1] - headPt[1]];
+  const bezTailLen = Math.sqrt((bezTail[0] ** 2) + (bezTail[1] ** 2));
+  const bezHeadLen = Math.sqrt((bezHead[0] ** 2) + (bezHead[1] ** 2));
+  const bezTailNorm = bezTailLen === 0
+    ? bezTail
+    : [bezTail[0] / bezTailLen, bezTail[1] / bezTailLen];
+  const bezHeadNorm = bezTailLen === 0
+    ? bezHead
+    : [bezHead[0] / bezHeadLen, bezHead[1] / bezHeadLen];
+  const tailVector = [-bezTailNorm[0], -bezTailNorm[1]];
+  const headVector = [-bezHeadNorm[0], -bezHeadNorm[1]];
+  const tailNormal = [tailVector[1], -tailVector[0]];
+  const headNormal = [headVector[1], -headVector[0]];
 
-  const arcStart = [
-    startPoint[0] + bezStartNorm[0] * p.length * ((p.start ? 1 : 0) + p.padding),
-    startPoint[1] + bezStartNorm[1] * p.length * ((p.start ? 1 : 0) + p.padding)
+  const tailArc = [
+    tailPt[0] + bezTailNorm[0] * o.tail.height * ((o.tail.visible ? 1 : 0) + o.tail.padding),
+    tailPt[1] + bezTailNorm[1] * o.tail.height * ((o.tail.visible ? 1 : 0) + o.tail.padding)
   ];
-  const arcEnd = [
-    endPoint[0] + bezEndNorm[0] * p.length * ((p.end ? 1 : 0) + p.padding),
-    endPoint[1] + bezEndNorm[1] * p.length * ((p.end ? 1 : 0) + p.padding)
+  const headArc = [
+    headPt[0] + bezHeadNorm[0] * o.head.height * ((o.head.visible ? 1 : 0) + o.head.padding),
+    headPt[1] + bezHeadNorm[1] * o.head.height * ((o.head.visible ? 1 : 0) + o.head.padding)
   ];
   // readjust bezier curve now that the arrow heads push inwards
-  vector = [arcEnd[0] - arcStart[0], arcEnd[1] - arcStart[1]];
+  vector = [headArc[0] - tailArc[0], headArc[1] - tailArc[1]];
   perpendicular = [vector[1], -vector[0]];
-  midpoint = [arcStart[0] + vector[0] / 2, arcStart[1] + vector[1] / 2];
+  midpoint = [tailArc[0] + vector[0] / 2, tailArc[1] + vector[1] / 2];
   bezPoint = [
-    midpoint[0] + perpendicular[0] * (p.side ? 1 : -1) * p.bend,
-    midpoint[1] + perpendicular[1] * (p.side ? 1 : -1) * p.bend
+    midpoint[0] + perpendicular[0] * o.curve,
+    midpoint[1] + perpendicular[1] * o.curve
   ];
+
   // done adjust
-
-  const controlStart = [
-    arcStart[0] + (bezPoint[0] - arcStart[0]) * p.pinch,
-    arcStart[1] + (bezPoint[1] - arcStart[1]) * p.pinch
+  const tailControl = [
+    tailArc[0] + (bezPoint[0] - tailArc[0]) * o.pinch,
+    tailArc[1] + (bezPoint[1] - tailArc[1]) * o.pinch
   ];
-  const controlEnd = [
-    arcEnd[0] + (bezPoint[0] - arcEnd[0]) * p.pinch,
-    arcEnd[1] + (bezPoint[1] - arcEnd[1]) * p.pinch
+  const headControl = [
+    headArc[0] + (bezPoint[0] - headArc[0]) * o.pinch,
+    headArc[1] + (bezPoint[1] - headArc[1]) * o.pinch
   ];
 
-
-  const startHeadPoints = [
-    [arcStart[0] + startNormal[0] * -p.width, arcStart[1] + startNormal[1] * -p.width],
-    [arcStart[0] + startNormal[0] * p.width, arcStart[1] + startNormal[1] * p.width],
-    [arcStart[0] + startHeadVec[0] * p.length, arcStart[1] + startHeadVec[1] * p.length]
+  const tailPolyPts = [
+    [tailArc[0] + tailNormal[0] * -o.tail.width, tailArc[1] + tailNormal[1] * -o.tail.width],
+    [tailArc[0] + tailNormal[0] * o.tail.width, tailArc[1] + tailNormal[1] * o.tail.width],
+    [tailArc[0] + tailVector[0] * o.tail.height, tailArc[1] + tailVector[1] * o.tail.height]
   ];
-  const endHeadPoints = [
-    [arcEnd[0] + endNormal[0] * -p.width, arcEnd[1] + endNormal[1] * -p.width],
-    [arcEnd[0] + endNormal[0] * p.width, arcEnd[1] + endNormal[1] * p.width],
-    [arcEnd[0] + endHeadVec[0] * p.length, arcEnd[1] + endHeadVec[1] * p.length]
+  const headPolyPts = [
+    [headArc[0] + headNormal[0] * -o.head.width, headArc[1] + headNormal[1] * -o.head.width],
+    [headArc[0] + headNormal[0] * o.head.width, headArc[1] + headNormal[1] * o.head.width],
+    [headArc[0] + headVector[0] * o.head.height, headArc[1] + headVector[1] * o.head.height]
   ];
 
   // draw
-  const arrowGroup = window.document.createElementNS(svgNS, "g");
-  const arrowArc = bezier(
-    arcStart[0], arcStart[1], controlStart[0], controlStart[1],
-    controlEnd[0], controlEnd[1], arcEnd[0], arcEnd[1]
-  );
-  arrowArc.setAttribute("style", arrowStroke);
-  arrowGroup.appendChild(arrowArc);
-  if (p.start) {
-    const startHead = polygon(startHeadPoints);
-    startHead.setAttribute("style", arrowFill);
-    arrowGroup.appendChild(startHead);
-  }
-  if (p.end) {
-    const endHead = polygon(endHeadPoints);
-    endHead.setAttribute("style", arrowFill);
-    arrowGroup.appendChild(endHead);
+  // if straight or curved
+  path.setAttribute("d", `M${tailArc[0]},${tailArc[1]}C${tailControl[0]},${tailControl[1]},${headControl[0]},${headControl[1]},${headArc[0]},${headArc[1]}`);
+
+  if (o.head.visible) {
+    polys[0].removeAttribute("display");
+    setPoints(polys[0], headPolyPts);
+  } else {
+    polys[0].setAttribute("display", "none");
   }
 
-  // ///////////////
-  // debug
-  // let debugYellowStyle = "stroke:#ecb233;stroke-width:0.005";
-  // let debugBlueStyle = "stroke:#224c72;stroke-width:0.005";
-  // let debugRedStyle = "stroke:#e14929;stroke-width:0.005";
-  // arrowGroup.line(arcStart[0], arcStart[1], arcEnd[0], arcEnd[1])
-  //  .setAttribute("style", debugYellowStyle);
+  if (o.tail.visible) {
+    polys[1].removeAttribute("display");
+    setPoints(polys[1], tailPolyPts);
+  } else {
+    polys[1].setAttribute("display", "none");
+  }
+  return shape;
+};
 
-  // arrowGroup.line(arcStart[0], arcStart[1], bezPoint[0], bezPoint[1])
-  //  .setAttribute("style", debugBlueStyle);
-  // arrowGroup.line(arcEnd[0], arcEnd[1], bezPoint[0], bezPoint[1])
-  //  .setAttribute("style", debugBlueStyle);
-  // arrowGroup.line(arcStart[0], arcStart[1], controlStart[0], controlStart[1])
-  //  .setAttribute("style", debugRedStyle);
-  // arrowGroup.line(arcEnd[0], arcEnd[1], controlEnd[0], controlEnd[1])
-  //  .setAttribute("style", debugRedStyle);
-  // arrowGroup.line(controlStart[0], controlStart[1], controlEnd[0], controlEnd[1])
-  //  .setAttribute("style", debugRedStyle);
 
-  return arrowGroup;
+export const attachArrowMethods = function (element) {
+  element.head = (options) => {
+    if (typeof options === "object") {
+      Object.assign(element.options.head, options);
+      if (options.visible === undefined) {
+        element.options.head.visible = true;
+      }
+    } else if (typeof options === "boolean") {
+      element.options.head.visible = options;
+    } else if (options == null) {
+      element.options.head.visible = true;
+    }
+    setArrowPoints(element);
+    return element;
+  };
+  element.tail = (options) => {
+    if (typeof options === "object") {
+      Object.assign(element.options.tail, options);
+      if (options.visible === undefined) {
+        element.options.tail.visible = true;
+      }
+      element.options.tail.visible = true;
+    } else if (typeof options === "boolean") {
+      element.options.tail.visible = options;
+    } else if (options == null) {
+      element.options.tail.visible = true;
+    }
+    setArrowPoints(element);
+    return element;
+  };
+  element.curve = (amount) => {
+    element.options.curve = amount;
+    setArrowPoints(element);
+    return element;
+  };
+  element.pinch = (amount) => {
+    element.options.pinch = amount;
+    setArrowPoints(element);
+    return element;
+  };
+};
+
+export const arrow = function (...args) {
+  const shape = window.document.createElementNS(svgNS, "g");
+  const tailPoly = window.document.createElementNS(svgNS, "polygon");
+  const headPoly = window.document.createElementNS(svgNS, "polygon");
+  const arrowPath = window.document.createElementNS(svgNS, "path");
+  tailPoly.setAttributeNS(null, "class", "svg-arrow-tail");
+  headPoly.setAttributeNS(null, "class", "svg-arrow-head");
+  arrowPath.setAttributeNS(null, "class", "svg-arrow-path");
+  tailPoly.setAttributeNS(null, "style", "stroke: none;");
+  headPoly.setAttributeNS(null, "style", "stroke: none;");
+  arrowPath.setAttributeNS(null, "style", "fill: none;");
+  shape.appendChild(arrowPath);
+  shape.appendChild(tailPoly);
+  shape.appendChild(headPoly);
+  shape.options = {
+    head: { width: 0.5, height: 2, visible: false, padding: 0.0 },
+    tail: { width: 0.5, height: 2, visible: false, padding: 0.0 },
+    curve: 0.0,
+    pinch: 0.618,
+    endpoints: [],
+  };
+  setArrowPoints(shape, ...args);
+  attachArrowMethods(shape);
+  shape.stroke = (...a) => { shape.setAttributeNS(null, "stroke", ...a); return shape; }
+  shape.fill = (...a) => { shape.setAttributeNS(null, "fill", ...a); return shape; }
+  shape.strokeWidth = (...a) => { shape.setAttributeNS(null, "stroke-width", ...a); return shape; }
+  shape.setPoints = (...a) => setArrowPoints(shape, ...a);
+  return shape;
 };

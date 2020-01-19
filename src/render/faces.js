@@ -27,10 +27,13 @@ const make_faces_sidedness = function (graph) {
 };
 
 const finalize_faces = function (graph, svg_faces) {
+  const isFoldedForm = typeof graph.frame_classes === "object"
+    && graph.frame_classes !== null
+    && !(graph.frame_classes.includes("creasePattern"));
   const orderIsCertain = graph["faces_re:layer"] != null
     && graph["faces_re:layer"].length === graph.faces_vertices.length;
   // todo: include other ways of determining faces_ordering
-  if (orderIsCertain) {
+  if (orderIsCertain && isFoldedForm) {
     // only if face order is known
     make_faces_sidedness(graph)
       .forEach((side, i) => svg_faces[i].setAttribute("class", side));

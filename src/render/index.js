@@ -35,6 +35,7 @@ const component_draw_function = {
   edges: edges_path,
   faces: faces_draw_function,
   boundaries: boundaries_polygon,
+  diagrams: renderDiagrams,
 };
 
 const makeDefaults = (vmin = 1) => recursive_freeze({
@@ -61,7 +62,10 @@ const makeDefaults = (vmin = 1) => recursive_freeze({
       stroke: "black",
       fill: "none",
       "stroke-linejoin": "bevel",
-      "stroke-width": vmin / 100,
+      "stroke-width": vmin / 200,
+    },
+    boundaries: {
+      fill: "white",
     },
     faces: {
       stroke: "none",
@@ -74,16 +78,32 @@ const makeDefaults = (vmin = 1) => recursive_freeze({
       boundary: {},
       mountain: { stroke: "red" },
       valley: { stroke: "blue" },
-      mark: { stroke: "gray" },
+      mark: { stroke: "lightgray" },
       unassigned: { stroke: "lightgray" },
     },
     vertices: {
       stroke: "none",
       fill: "black",
       /* these below will be applied onto specific elements */
-      r: vmin / 100
+      r: vmin / 200
     },
-    boundaries: {},
+    diagrams: {
+      lines: {
+        valley: {
+          stroke: "blue",
+          "stroke-width": vmin / 100,
+          "stroke-dasharray": `${vmin / 50} ${vmin / 100}`
+        },
+        mountain: {
+          stroke: "red",
+          "stroke-width": vmin / 100,
+          "stroke-dasharray": `${vmin / 50} ${vmin / 100}`
+        }
+      },
+      arrows: {
+        valley: { stroke: "black", fill: "black" }
+      }
+    }
   }
 });
 
@@ -92,7 +112,7 @@ const recursiveAssign = function (target, source) {
     if (typeof source[key] === "object" && source[key] !== null) {
       if (!(key in target)) { target[key] = {}; }
       recursiveAssign(target[key], source[key])
-    } else if (!(key in target)) {
+    } else if (typeof target === "object" && !(key in target)) {
       target[key] = source[key];
     }
   });
@@ -130,10 +150,11 @@ const fold_to_svg = function (input, options = {}) {
   if (options.stylesheet != null) {
     const style = SVG.style(defs);
     // wrap style in CDATA section
+    const strokeVar = options.attributes.svg["stroke-width"]
+      ? options.attributes.svg["stroke-width"] : vmin / 200;
     const cdata = (new window.DOMParser())
       .parseFromString("<xml></xml>", "application/xml")
-      // `\nsvg { --crease-width: ${vmin * 0.005}; }\n${options.stylesheet}`
-      .createCDATASection(options.stylesheet);
+      .createCDATASection(`\n* { --stroke-width: ${strokeVar}; }\n${options.stylesheet}`);
     style.appendChild(cdata);
   }
   if (options.shadows != null) {
@@ -142,16 +163,19 @@ const fold_to_svg = function (input, options = {}) {
       : { blur: vmin / 200 });
     defs.appendChild(shadowFilter(shadowOptions));
   }
+  // override diagrams to false if there is no diagram information
+  options.diagrams = !!(options.diagrams && (graph["re:diagrams"] != null));
 
   // draw
   const groups = { };
-  ["boundaries", "edges", "faces", "vertices"].filter(key => options[key] === true)
+  ["boundaries", "edges", "faces", "vertices", "diagrams"].filter(key => options[key] === true)
     .forEach((key) => {
       groups[key] = SVG.group();
       groups[key].setAttribute("class", key);
     });
   // draw geometry into groups
   Object.keys(groups)
+    .filter(key => component_draw_function[key] !== undefined)
     .forEach(key => component_draw_function[key](graph, options)
       .forEach(a => groups[key].appendChild(a)));
   // append geometry to SVG, if geometry exists
@@ -161,7 +185,7 @@ const fold_to_svg = function (input, options = {}) {
 
   // apply specific style: edges
   if (groups.edges) {
-    const edgeClasses = ["boundary", "mountain", "valley", "mark", "unassigned"];
+    const edgeClasses = ["unassigned", "mark", "valley", "mountain", "boundary"];
     Object.keys(options.attributes.edges)
       .filter(key => !edgeClasses.includes(key))
       .forEach(key => groups.edges.setAttribute(key, options.attributes.edges[key]));
@@ -195,12 +219,21 @@ const fold_to_svg = function (input, options = {}) {
     Object.keys(options.attributes.boundaries)
       .forEach(key => groups.boundaries.setAttribute(key, options.attributes.boundaries[key]));
   }
-  // if exists, draw diagram instructions, arrows
-  // if ("re:diagrams" in graph && o.diagram) {
-  //   const instructionLayer = group();
-  //   svg.appendChild(instructionLayer);
-  //   renderDiagrams(graph, instructionLayer);
-  // }
+  if (groups.diagrams) {
+    Object.keys(options.attributes.diagrams.lines).forEach(key => 
+      Array.from(groups.diagrams.childNodes)
+        .filter(el => el.tagName === "line")
+        .filter(el => el.getAttribute("class").includes(key))
+        .forEach(child => Object.keys(options.attributes.diagrams.lines[key])
+          .forEach(attr => child.setAttribute(attr, options.attributes.diagrams.lines[key][attr]))));
+    Object.keys(options.attributes.diagrams.arrows).forEach(key => 
+      Array.from(groups.diagrams.childNodes)
+        .filter(el => el.getAttribute("class").includes("arrow"))
+        .filter(el => el.getAttribute("class").includes(key))
+        .forEach(child => Object.keys(options.attributes.diagrams.arrows[key])
+          .forEach(attr => child.setAttribute(attr, options.attributes.diagrams.arrows[key][attr]))));
+
+  }
 
   // return
   if (options.output === "svg") { return svg; }

@@ -15,21 +15,17 @@ test("load and convert 1", () => {
 
 test("load and convert crane without style", () => {
   const craneFold = fs.readFileSync("./tests/examples/crane.fold", "utf8");
+  const craneSVG = FoldToSvg(craneFold);
+  fs.writeFile(`${outputDir}/cp-crane.svg`, craneSVG, () => {});
+});
+
+test("load and convert crane with style", () => {
+  const craneFold = fs.readFileSync("./tests/examples/crane.fold", "utf8");
   const stylesheet = fs.readFileSync("./tests/examples/byrne.css", "utf8");
   const options = {
     stylesheet: stylesheet,
     padding: 0.02,
   };
-  const craneSVG = FoldToSvg(craneFold);
   const craneSVGStyled = FoldToSvg(craneFold, options);
-  fs.writeFile(`${outputDir}/cp-crane.svg`, craneSVG, () => {});
-  fs.writeFile(`${outputDir}/cp-crane-style.svg`, craneSVGStyled, () => {});
-});
-
-test("load and convert 3", () => {
-  fs.readFile("./tests/examples/diagram.fold", "utf8", (err, data) => {
-    const diagram = JSON.parse(data);
-    const svg = FoldToSvg(diagram, { file_frame: 1, padding: 0.02 });
-    fs.writeFile(`${outputDir}/diagram-step.svg`, svg, () => {});
-  });
+  fs.writeFile(`${outputDir}/cp-crane-stylesheet.svg`, craneSVGStyled, () => {});
 });

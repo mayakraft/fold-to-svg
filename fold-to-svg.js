@@ -157,79 +157,247 @@
     });
     return path("M ".concat(pts[0], " C ").concat(pts[1], " ").concat(pts[2], " ").concat(pts[3]));
   };
-  var arcArrow = function arcArrow(start, end, options) {
-    var p = {
-      color: "#000",
-      strokeWidth: 0.5,
-      width: 0.5,
-      length: 2,
-      bend: 0.3,
-      pinch: 0.618,
-      padding: 0.5,
-      side: true,
-      start: false,
-      end: true,
-      strokeStyle: "",
-      fillStyle: ""
-    };
-    if (_typeof(options) === "object" && options !== null) {
-      Object.assign(p, options);
+  var is_iterable = function is_iterable(obj) {
+    return obj != null && typeof obj[Symbol.iterator] === "function";
+  };
+  var flatten_input = function flatten_input() {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
     }
-    var arrowFill = ["stroke:none", "fill:".concat(p.color), p.fillStyle].filter(function (a) {
-      return a !== "";
-    }).join(";");
-    var arrowStroke = ["fill:none", "stroke:".concat(p.color), "stroke-width:".concat(p.strokeWidth), p.strokeStyle].filter(function (a) {
-      return a !== "";
-    }).join(";");
-    var startPoint = start;
-    var endPoint = end;
-    var vector = [endPoint[0] - startPoint[0], endPoint[1] - startPoint[1]];
-    var midpoint = [startPoint[0] + vector[0] / 2, startPoint[1] + vector[1] / 2];
-    var len = Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-    var minLength = (p.start ? 1 + p.padding : 0 + p.end ? 1 + p.padding : 0) * p.length * 2.5;
+    switch (args.length) {
+      case undefined:
+      case 0:
+        return args;
+      case 1:
+        return is_iterable(args[0]) && typeof args[0] !== "string" ? flatten_input.apply(void 0, _toConsumableArray(args[0])) : [args[0]];
+      default:
+        return Array.from(args).map(function (a) {
+          return is_iterable(a) ? _toConsumableArray(flatten_input(a)) : a;
+        }).reduce(function (a, b) {
+          return a.concat(b);
+        }, []);
+    }
+  };
+  var setPoints = function setPoints(shape) {
+    for (var _len2 = arguments.length, pointsArray = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+      pointsArray[_key2 - 1] = arguments[_key2];
+    }
+    var flat = flatten_input.apply(void 0, pointsArray);
+    var pointsString = "";
+    if (typeof flat[0] === "number") {
+      pointsString = Array.from(Array(Math.floor(flat.length / 2))).reduce(function (a, b, i) {
+        return "".concat(a).concat(flat[i * 2], ",").concat(flat[i * 2 + 1], " ");
+      }, "");
+    }
+    if (_typeof(flat[0]) === "object") {
+      if (typeof flat[0].x === "number") {
+        pointsString = flat.reduce(function (prev, curr) {
+          return "".concat(prev).concat(curr.x, ",").concat(curr.y, " ");
+        }, "");
+      }
+      if (typeof flat[0][0] === "number") {
+        pointsString = flat.reduce(function (prev, curr) {
+          return "".concat(prev).concat(curr[0], ",").concat(curr[1], " ");
+        }, "");
+      }
+    }
+    shape.setAttributeNS(null, "points", pointsString);
+    return shape;
+  };
+  var setArrowPoints = function setArrowPoints(shape) {
+    var children = Array.from(shape.childNodes);
+    var path = children.filter(function (node) {
+      return node.tagName === "path";
+    }).shift();
+    var polys = ["svg-arrow-head", "svg-arrow-tail"].map(function (c) {
+      return children.filter(function (n) {
+        return n.getAttribute("class") === c;
+      }).shift();
+    });
+    for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+      args[_key3 - 1] = arguments[_key3];
+    }
+    var flat = flatten_input.apply(void 0, args);
+    var endpoints = [];
+    if (typeof flat[0] === "number") {
+      endpoints = flat;
+    }
+    if (_typeof(flat[0]) === "object") {
+      if (typeof flat[0].x === "number") {
+        endpoints = flat.map(function (p) {
+          return [p[0], p[1]];
+        }).reduce(function (a, b) {
+          return a.concat(b);
+        }, []);
+      }
+      if (typeof flat[0][0] === "number") {
+        endpoints = flat.reduce(function (a, b) {
+          return a.concat(b);
+        }, []);
+      }
+    }
+    if (!endpoints.length && shape.endpoints != null) {
+      endpoints = shape.endpoints;
+    }
+    if (!endpoints.length) {
+      return shape;
+    }
+    shape.endpoints = endpoints;
+    var o = shape.options;
+    var tailPt = [endpoints[0], endpoints[1]];
+    var headPt = [endpoints[2], endpoints[3]];
+    var vector = [headPt[0] - tailPt[0], headPt[1] - tailPt[1]];
+    var midpoint = [tailPt[0] + vector[0] / 2, tailPt[1] + vector[1] / 2];
+    var len = Math.sqrt(Math.pow(vector[0], 2) + Math.pow(vector[1], 2));
+    var minLength = (o.tail.visible ? (1 + o.tail.padding) * o.tail.height * 2.5 : 0) + (o.head.visible ? (1 + o.head.padding) * o.head.height * 2.5 : 0);
     if (len < minLength) {
-      var minVec = [vector[0] / len * minLength, vector[1] / len * minLength];
-      startPoint = [midpoint[0] - minVec[0] * 0.5, midpoint[1] - minVec[1] * 0.5];
-      endPoint = [midpoint[0] + minVec[0] * 0.5, midpoint[1] + minVec[1] * 0.5];
-      vector = [endPoint[0] - startPoint[0], endPoint[1] - startPoint[1]];
+      var minVec = len === 0 ? [minLength, 0] : [vector[0] / len * minLength, vector[1] / len * minLength];
+      tailPt = [midpoint[0] - minVec[0] * 0.5, midpoint[1] - minVec[1] * 0.5];
+      headPt = [midpoint[0] + minVec[0] * 0.5, midpoint[1] + minVec[1] * 0.5];
+      vector = [headPt[0] - tailPt[0], headPt[1] - tailPt[1]];
     }
     var perpendicular = [vector[1], -vector[0]];
-    var bezPoint = [midpoint[0] + perpendicular[0] * (p.side ? 1 : -1) * p.bend, midpoint[1] + perpendicular[1] * (p.side ? 1 : -1) * p.bend];
-    var bezStart = [bezPoint[0] - startPoint[0], bezPoint[1] - startPoint[1]];
-    var bezEnd = [bezPoint[0] - endPoint[0], bezPoint[1] - endPoint[1]];
-    var bezStartLen = Math.sqrt(bezStart[0] * bezStart[0] + bezStart[1] * bezStart[1]);
-    var bezEndLen = Math.sqrt(bezEnd[0] * bezEnd[0] + bezEnd[1] * bezEnd[1]);
-    var bezStartNorm = [bezStart[0] / bezStartLen, bezStart[1] / bezStartLen];
-    var bezEndNorm = [bezEnd[0] / bezEndLen, bezEnd[1] / bezEndLen];
-    var startHeadVec = [-bezStartNorm[0], -bezStartNorm[1]];
-    var endHeadVec = [-bezEndNorm[0], -bezEndNorm[1]];
-    var startNormal = [startHeadVec[1], -startHeadVec[0]];
-    var endNormal = [endHeadVec[1], -endHeadVec[0]];
-    var arcStart = [startPoint[0] + bezStartNorm[0] * p.length * ((p.start ? 1 : 0) + p.padding), startPoint[1] + bezStartNorm[1] * p.length * ((p.start ? 1 : 0) + p.padding)];
-    var arcEnd = [endPoint[0] + bezEndNorm[0] * p.length * ((p.end ? 1 : 0) + p.padding), endPoint[1] + bezEndNorm[1] * p.length * ((p.end ? 1 : 0) + p.padding)];
-    vector = [arcEnd[0] - arcStart[0], arcEnd[1] - arcStart[1]];
+    var bezPoint = [midpoint[0] + perpendicular[0] * o.curve, midpoint[1] + perpendicular[1] * o.curve];
+    var bezTail = [bezPoint[0] - tailPt[0], bezPoint[1] - tailPt[1]];
+    var bezHead = [bezPoint[0] - headPt[0], bezPoint[1] - headPt[1]];
+    var bezTailLen = Math.sqrt(Math.pow(bezTail[0], 2) + Math.pow(bezTail[1], 2));
+    var bezHeadLen = Math.sqrt(Math.pow(bezHead[0], 2) + Math.pow(bezHead[1], 2));
+    var bezTailNorm = bezTailLen === 0 ? bezTail : [bezTail[0] / bezTailLen, bezTail[1] / bezTailLen];
+    var bezHeadNorm = bezTailLen === 0 ? bezHead : [bezHead[0] / bezHeadLen, bezHead[1] / bezHeadLen];
+    var tailVector = [-bezTailNorm[0], -bezTailNorm[1]];
+    var headVector = [-bezHeadNorm[0], -bezHeadNorm[1]];
+    var tailNormal = [tailVector[1], -tailVector[0]];
+    var headNormal = [headVector[1], -headVector[0]];
+    var tailArc = [tailPt[0] + bezTailNorm[0] * o.tail.height * ((o.tail.visible ? 1 : 0) + o.tail.padding), tailPt[1] + bezTailNorm[1] * o.tail.height * ((o.tail.visible ? 1 : 0) + o.tail.padding)];
+    var headArc = [headPt[0] + bezHeadNorm[0] * o.head.height * ((o.head.visible ? 1 : 0) + o.head.padding), headPt[1] + bezHeadNorm[1] * o.head.height * ((o.head.visible ? 1 : 0) + o.head.padding)];
+    vector = [headArc[0] - tailArc[0], headArc[1] - tailArc[1]];
     perpendicular = [vector[1], -vector[0]];
-    midpoint = [arcStart[0] + vector[0] / 2, arcStart[1] + vector[1] / 2];
-    bezPoint = [midpoint[0] + perpendicular[0] * (p.side ? 1 : -1) * p.bend, midpoint[1] + perpendicular[1] * (p.side ? 1 : -1) * p.bend];
-    var controlStart = [arcStart[0] + (bezPoint[0] - arcStart[0]) * p.pinch, arcStart[1] + (bezPoint[1] - arcStart[1]) * p.pinch];
-    var controlEnd = [arcEnd[0] + (bezPoint[0] - arcEnd[0]) * p.pinch, arcEnd[1] + (bezPoint[1] - arcEnd[1]) * p.pinch];
-    var startHeadPoints = [[arcStart[0] + startNormal[0] * -p.width, arcStart[1] + startNormal[1] * -p.width], [arcStart[0] + startNormal[0] * p.width, arcStart[1] + startNormal[1] * p.width], [arcStart[0] + startHeadVec[0] * p.length, arcStart[1] + startHeadVec[1] * p.length]];
-    var endHeadPoints = [[arcEnd[0] + endNormal[0] * -p.width, arcEnd[1] + endNormal[1] * -p.width], [arcEnd[0] + endNormal[0] * p.width, arcEnd[1] + endNormal[1] * p.width], [arcEnd[0] + endHeadVec[0] * p.length, arcEnd[1] + endHeadVec[1] * p.length]];
-    var arrowGroup = win.document.createElementNS(svgNS, "g");
-    var arrowArc = bezier(arcStart[0], arcStart[1], controlStart[0], controlStart[1], controlEnd[0], controlEnd[1], arcEnd[0], arcEnd[1]);
-    arrowArc.setAttribute("style", arrowStroke);
-    arrowGroup.appendChild(arrowArc);
-    if (p.start) {
-      var startHead = polygon(startHeadPoints);
-      startHead.setAttribute("style", arrowFill);
-      arrowGroup.appendChild(startHead);
+    midpoint = [tailArc[0] + vector[0] / 2, tailArc[1] + vector[1] / 2];
+    bezPoint = [midpoint[0] + perpendicular[0] * o.curve, midpoint[1] + perpendicular[1] * o.curve];
+    var tailControl = [tailArc[0] + (bezPoint[0] - tailArc[0]) * o.pinch, tailArc[1] + (bezPoint[1] - tailArc[1]) * o.pinch];
+    var headControl = [headArc[0] + (bezPoint[0] - headArc[0]) * o.pinch, headArc[1] + (bezPoint[1] - headArc[1]) * o.pinch];
+    var tailPolyPts = [[tailArc[0] + tailNormal[0] * -o.tail.width, tailArc[1] + tailNormal[1] * -o.tail.width], [tailArc[0] + tailNormal[0] * o.tail.width, tailArc[1] + tailNormal[1] * o.tail.width], [tailArc[0] + tailVector[0] * o.tail.height, tailArc[1] + tailVector[1] * o.tail.height]];
+    var headPolyPts = [[headArc[0] + headNormal[0] * -o.head.width, headArc[1] + headNormal[1] * -o.head.width], [headArc[0] + headNormal[0] * o.head.width, headArc[1] + headNormal[1] * o.head.width], [headArc[0] + headVector[0] * o.head.height, headArc[1] + headVector[1] * o.head.height]];
+    path.setAttribute("d", "M".concat(tailArc[0], ",").concat(tailArc[1], "C").concat(tailControl[0], ",").concat(tailControl[1], ",").concat(headControl[0], ",").concat(headControl[1], ",").concat(headArc[0], ",").concat(headArc[1]));
+    if (o.head.visible) {
+      polys[0].removeAttribute("display");
+      setPoints(polys[0], headPolyPts);
+    } else {
+      polys[0].setAttribute("display", "none");
     }
-    if (p.end) {
-      var endHead = polygon(endHeadPoints);
-      endHead.setAttribute("style", arrowFill);
-      arrowGroup.appendChild(endHead);
+    if (o.tail.visible) {
+      polys[1].removeAttribute("display");
+      setPoints(polys[1], tailPolyPts);
+    } else {
+      polys[1].setAttribute("display", "none");
     }
-    return arrowGroup;
+    return shape;
+  };
+  var attachArrowMethods = function attachArrowMethods(element) {
+    element.head = function (options) {
+      if (_typeof(options) === "object") {
+        Object.assign(element.options.head, options);
+        if (options.visible === undefined) {
+          element.options.head.visible = true;
+        }
+      } else if (typeof options === "boolean") {
+        element.options.head.visible = options;
+      } else if (options == null) {
+        element.options.head.visible = true;
+      }
+      setArrowPoints(element);
+      return element;
+    };
+    element.tail = function (options) {
+      if (_typeof(options) === "object") {
+        Object.assign(element.options.tail, options);
+        if (options.visible === undefined) {
+          element.options.tail.visible = true;
+        }
+        element.options.tail.visible = true;
+      } else if (typeof options === "boolean") {
+        element.options.tail.visible = options;
+      } else if (options == null) {
+        element.options.tail.visible = true;
+      }
+      setArrowPoints(element);
+      return element;
+    };
+    element.curve = function (amount) {
+      element.options.curve = amount;
+      setArrowPoints(element);
+      return element;
+    };
+    element.pinch = function (amount) {
+      element.options.pinch = amount;
+      setArrowPoints(element);
+      return element;
+    };
+  };
+  var arrow = function arrow() {
+    var shape = win.document.createElementNS(svgNS, "g");
+    var tailPoly = win.document.createElementNS(svgNS, "polygon");
+    var headPoly = win.document.createElementNS(svgNS, "polygon");
+    var arrowPath = win.document.createElementNS(svgNS, "path");
+    tailPoly.setAttributeNS(null, "class", "svg-arrow-tail");
+    headPoly.setAttributeNS(null, "class", "svg-arrow-head");
+    arrowPath.setAttributeNS(null, "class", "svg-arrow-path");
+    tailPoly.setAttributeNS(null, "style", "stroke: none;");
+    headPoly.setAttributeNS(null, "style", "stroke: none;");
+    arrowPath.setAttributeNS(null, "style", "fill: none;");
+    shape.appendChild(arrowPath);
+    shape.appendChild(tailPoly);
+    shape.appendChild(headPoly);
+    shape.options = {
+      head: {
+        width: 0.5,
+        height: 2,
+        visible: false,
+        padding: 0.0
+      },
+      tail: {
+        width: 0.5,
+        height: 2,
+        visible: false,
+        padding: 0.0
+      },
+      curve: 0.0,
+      pinch: 0.618,
+      endpoints: []
+    };
+    for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+      args[_key4] = arguments[_key4];
+    }
+    setArrowPoints.apply(void 0, [shape].concat(args));
+    attachArrowMethods(shape);
+    shape.stroke = function () {
+      for (var _len5 = arguments.length, a = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+        a[_key5] = arguments[_key5];
+      }
+      shape.setAttributeNS.apply(shape, [null, "stroke"].concat(a));
+      return shape;
+    };
+    shape.fill = function () {
+      for (var _len6 = arguments.length, a = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+        a[_key6] = arguments[_key6];
+      }
+      shape.setAttributeNS.apply(shape, [null, "fill"].concat(a));
+      return shape;
+    };
+    shape.strokeWidth = function () {
+      for (var _len7 = arguments.length, a = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+        a[_key7] = arguments[_key7];
+      }
+      shape.setAttributeNS.apply(shape, [null, "stroke-width"].concat(a));
+      return shape;
+    };
+    shape.setPoints = function () {
+      for (var _len8 = arguments.length, a = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+        a[_key8] = arguments[_key8];
+      }
+      return setArrowPoints.apply(void 0, [shape].concat(a));
+    };
+    return shape;
   };
   var SVG = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -243,7 +411,8 @@
     polygon: polygon,
     path: path,
     bezier: bezier,
-    arcArrow: arcArrow
+    attachArrowMethods: attachArrowMethods,
+    arrow: arrow
   });
   var vertices_circle = function vertices_circle(graph, options) {
     if ("vertices_coords" in graph === false) {
@@ -297,11 +466,11 @@
   var edges_indices_classes = function edges_indices_classes(_ref2) {
     var edges_assignment = _ref2.edges_assignment;
     var assignment_indices = {
-      b: [],
-      m: [],
-      v: [],
+      u: [],
       f: [],
-      u: []
+      v: [],
+      m: [],
+      b: []
     };
     edges_assignment.map(function (a) {
       return edges_assignment_to_lowercase[a];
@@ -519,8 +688,9 @@
     });
   };
   var finalize_faces = function finalize_faces(graph, svg_faces) {
+    var isFoldedForm = _typeof(graph.frame_classes) === "object" && graph.frame_classes !== null && !graph.frame_classes.includes("creasePattern");
     var orderIsCertain = graph["faces_re:layer"] != null && graph["faces_re:layer"].length === graph.faces_vertices.length;
-    if (orderIsCertain) {
+    if (orderIsCertain && isFoldedForm) {
       make_faces_sidedness(graph).forEach(function (side, i) {
         return svg_faces[i].setAttribute("class", side);
       });
@@ -837,6 +1007,59 @@
     p.setAttribute("class", "boundary");
     return [p];
   };
+  var DIAGRAMS = "re:diagrams";
+  var DIAGRAM_LINES = "re:diagram_lines";
+  var DIAGRAM_LINE_CLASSES = "re:diagram_line_classes";
+  var DIAGRAM_LINE_COORDS = "re:diagram_line_coords";
+  var DIAGRAM_ARROWS = "re:diagram_arrows";
+  var DIAGRAM_ARROW_CLASSES = "re:diagram_arrow_classes";
+  var DIAGRAM_ARROW_COORDS = "re:diagram_arrow_coords";
+  function renderDiagrams (graph, options) {
+    if (graph[DIAGRAMS] === undefined) {
+      return;
+    }
+    if (graph[DIAGRAMS].length === 0) {
+      return;
+    }
+    var diagrams = [];
+    Array.from(graph[DIAGRAMS]).forEach(function (instruction) {
+      if (DIAGRAM_LINES in instruction === true) {
+        instruction[DIAGRAM_LINES].forEach(function (crease) {
+          var creaseClasses = DIAGRAM_LINE_CLASSES in crease ? crease[DIAGRAM_LINE_CLASSES].join(" ") : "valley";
+          var pts = crease[DIAGRAM_LINE_COORDS];
+          if (pts !== undefined) {
+            var l = line(pts[0][0], pts[0][1], pts[1][0], pts[1][1]);
+            l.setAttribute("class", creaseClasses);
+            diagrams.push(l);
+          }
+        });
+      }
+      if (DIAGRAM_ARROWS in instruction === true) {
+        var r = bounding_rect(graph);
+        var vmin = r[2] > r[3] ? r[3] : r[2];
+        instruction[DIAGRAM_ARROWS].forEach(function (arrowObject) {
+          if (arrowObject[DIAGRAM_ARROW_COORDS].length === 2) {
+            var p = arrowObject[DIAGRAM_ARROW_COORDS];
+            var side = p[0][0] < p[1][0];
+            if (Math.abs(p[0][0] - p[1][0]) < 0.1) {
+              side = p[0][1] < p[1][1] ? p[0][0] < 0.5 : p[0][0] > 0.5;
+            }
+            if (Math.abs(p[0][1] - p[1][1]) < 0.1) {
+              side = p[0][0] < p[1][0] ? p[0][1] > 0.5 : p[0][1] < 0.5;
+            }
+            var a = arrow(p[0], p[1]).stroke("black").fill("black").strokeWidth(vmin * 0.02).head({
+              width: vmin * 0.035,
+              height: vmin * 0.09
+            }).curve(side ? 0.3 : -0.3);
+            var arrowClasses = DIAGRAM_ARROW_CLASSES in arrowObject ? ["arrow"].concat(arrowObject[DIAGRAM_ARROW_CLASSES]).join(" ") : "arrow";
+            a.setAttribute("class", arrowClasses);
+            diagrams.push(a);
+          }
+        });
+      }
+    });
+    return diagrams;
+  }
   var faces_draw_function = function faces_draw_function(graph) {
     return graph.faces_vertices != null ? faces_vertices_polygon(graph) : faces_edges_polygon(graph);
   };
@@ -844,7 +1067,8 @@
     vertices: vertices_circle,
     edges: edges_path,
     faces: faces_draw_function,
-    boundaries: boundaries_polygon
+    boundaries: boundaries_polygon,
+    diagrams: renderDiagrams
   };
   var makeDefaults = function makeDefaults() {
     var vmin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
@@ -867,7 +1091,10 @@
           stroke: "black",
           fill: "none",
           "stroke-linejoin": "bevel",
-          "stroke-width": vmin / 100
+          "stroke-width": vmin / 200
+        },
+        boundaries: {
+          fill: "white"
         },
         faces: {
           stroke: "none",
@@ -889,7 +1116,7 @@
             stroke: "blue"
           },
           mark: {
-            stroke: "gray"
+            stroke: "lightgray"
           },
           unassigned: {
             stroke: "lightgray"
@@ -898,9 +1125,28 @@
         vertices: {
           stroke: "none",
           fill: "black",
-          r: vmin / 100
+          r: vmin / 200
         },
-        boundaries: {}
+        diagrams: {
+          lines: {
+            valley: {
+              stroke: "blue",
+              "stroke-width": vmin / 100,
+              "stroke-dasharray": "".concat(vmin / 50, " ").concat(vmin / 100)
+            },
+            mountain: {
+              stroke: "red",
+              "stroke-width": vmin / 100,
+              "stroke-dasharray": "".concat(vmin / 50, " ").concat(vmin / 100)
+            }
+          },
+          arrows: {
+            valley: {
+              stroke: "black",
+              fill: "black"
+            }
+          }
+        }
       }
     });
   };
@@ -911,7 +1157,7 @@
           target[key] = {};
         }
         recursiveAssign(target[key], source[key]);
-      } else if (!(key in target)) {
+      } else if (_typeof(target) === "object" && !(key in target)) {
         target[key] = source[key];
       }
     });
@@ -934,7 +1180,8 @@
     var defs$1 = options.stylesheet != null || options.shadows != null ? defs(svg$1) : undefined;
     if (options.stylesheet != null) {
       var style$1 = style(defs$1);
-      var cdata = new win.DOMParser().parseFromString("<xml></xml>", "application/xml").createCDATASection(options.stylesheet);
+      var strokeVar = options.attributes.svg["stroke-width"] ? options.attributes.svg["stroke-width"] : vmin / 200;
+      var cdata = new win.DOMParser().parseFromString("<xml></xml>", "application/xml").createCDATASection("\n* { --stroke-width: ".concat(strokeVar, "; }\n").concat(options.stylesheet));
       style$1.appendChild(cdata);
     }
     if (options.shadows != null) {
@@ -943,14 +1190,17 @@
       };
       defs$1.appendChild(shadowFilter(shadowOptions));
     }
+    options.diagrams = !!(options.diagrams && graph["re:diagrams"] != null);
     var groups = {};
-    ["boundaries", "edges", "faces", "vertices"].filter(function (key) {
+    ["boundaries", "edges", "faces", "vertices", "diagrams"].filter(function (key) {
       return options[key] === true;
     }).forEach(function (key) {
       groups[key] = group();
       groups[key].setAttribute("class", key);
     });
-    Object.keys(groups).forEach(function (key) {
+    Object.keys(groups).filter(function (key) {
+      return component_draw_function[key] !== undefined;
+    }).forEach(function (key) {
       return component_draw_function[key](graph, options).forEach(function (a) {
         return groups[key].appendChild(a);
       });
@@ -961,7 +1211,7 @@
       return svg$1.appendChild(groups[key]);
     });
     if (groups.edges) {
-      var edgeClasses = ["boundary", "mountain", "valley", "mark", "unassigned"];
+      var edgeClasses = ["unassigned", "mark", "valley", "mountain", "boundary"];
       Object.keys(options.attributes.edges).filter(function (key) {
         return !edgeClasses.includes(key);
       }).forEach(function (key) {
@@ -1004,6 +1254,30 @@
     if (groups.boundaries) {
       Object.keys(options.attributes.boundaries).forEach(function (key) {
         return groups.boundaries.setAttribute(key, options.attributes.boundaries[key]);
+      });
+    }
+    if (groups.diagrams) {
+      Object.keys(options.attributes.diagrams.lines).forEach(function (key) {
+        return Array.from(groups.diagrams.childNodes).filter(function (el) {
+          return el.tagName === "line";
+        }).filter(function (el) {
+          return el.getAttribute("class").includes(key);
+        }).forEach(function (child) {
+          return Object.keys(options.attributes.diagrams.lines[key]).forEach(function (attr) {
+            return child.setAttribute(attr, options.attributes.diagrams.lines[key][attr]);
+          });
+        });
+      });
+      Object.keys(options.attributes.diagrams.arrows).forEach(function (key) {
+        return Array.from(groups.diagrams.childNodes).filter(function (el) {
+          return el.getAttribute("class").includes("arrow");
+        }).filter(function (el) {
+          return el.getAttribute("class").includes(key);
+        }).forEach(function (child) {
+          return Object.keys(options.attributes.diagrams.arrows[key]).forEach(function (attr) {
+            return child.setAttribute(attr, options.attributes.diagrams.arrows[key][attr]);
+          });
+        });
       });
     }
     if (options.output === "svg") {
