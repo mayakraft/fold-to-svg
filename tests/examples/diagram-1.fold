@@ -1,0 +1,28 @@
+{
+	"file_spec": 1.1,
+	"file_creator": "Rabbit Ear",
+	"file_author": "Robby Kraft",
+	"file_title": "diagram example",
+	"file_description": "demonstration of a FOLD file with diagram info",
+	"file_classes": ["singleModel"],
+	"frame_attributes": ["2D"],
+	"frame_classes": ["creasePattern"],
+	"vertices_coords": [[0,0],[1,0],[1,1],[0,1]],
+	"edges_vertices": [[0,1],[1,2],[2,3],[3,0]],
+	"edges_assignment": ["B","B","B","B"],
+	"edges_foldAngle": [0,0,0,0],
+	"faces_vertices": [[0,1,2,3]],
+	"re:diagrams": [{
+		"re:diagram_lines":[{
+			"re:diagram_line_classes": ["valley"],
+			"re:diagram_line_coords": [[0.2,0],[0.8,1]]
+		}],
+		"re:diagram_arrows":[{
+			"re:diagram_arrow_classes": ["valley"],
+			"re:diagram_arrow_coords": [[0,0.8],[1,0.2]]
+		}],
+		"re:instructions": {
+			"en": "valley fold"
+		}
+	}]
+}

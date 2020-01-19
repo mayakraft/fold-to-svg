@@ -62,9 +62,6 @@ export const circle = function (x, y, radius) {
 export const polygon = function (pointsArray) {
   const shape = window.document.createElementNS(svgNS, "polygon");
   const pointsString = pointsArray.map(p => `${p[0]},${p[1]}`).join(" ");
-    // .reduce((a, b) => `${a}${b[0]},${b[1]} `, "");
-  // const pointsString = pointsArray
-  //   .reduce((a, b) => `${a}${b[0]},${b[1]} `, "");
   shape.setAttributeNS(null, "points", pointsString);
   return shape;
 };

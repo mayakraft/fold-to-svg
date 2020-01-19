@@ -86,6 +86,23 @@ const makeDefaults = (vmin = 1) => recursive_freeze({
       fill: "black",
       /* these below will be applied onto specific elements */
       r: vmin / 200
+    },
+    diagrams: {
+      lines: {
+        valley: {
+          stroke: "blue",
+          "stroke-width": vmin / 100,
+          "stroke-dasharray": `${vmin / 50} ${vmin / 100}`
+        },
+        mountain: {
+          stroke: "red",
+          "stroke-width": vmin / 100,
+          "stroke-dasharray": `${vmin / 50} ${vmin / 100}`
+        }
+      },
+      arrows: {
+        valley: { stroke: "black", fill: "black" }
+      }
     }
   }
 });
@@ -95,7 +112,7 @@ const recursiveAssign = function (target, source) {
     if (typeof source[key] === "object" && source[key] !== null) {
       if (!(key in target)) { target[key] = {}; }
       recursiveAssign(target[key], source[key])
-    } else if (!(key in target)) {
+    } else if (typeof target === "object" && !(key in target)) {
       target[key] = source[key];
     }
   });
@@ -201,6 +218,21 @@ const fold_to_svg = function (input, options = {}) {
   if (groups.boundaries) {
     Object.keys(options.attributes.boundaries)
       .forEach(key => groups.boundaries.setAttribute(key, options.attributes.boundaries[key]));
+  }
+  if (groups.diagrams) {
+    Object.keys(options.attributes.diagrams.lines).forEach(key => 
+      Array.from(groups.diagrams.childNodes)
+        .filter(el => el.tagName === "line")
+        .filter(el => el.getAttribute("class").includes(key))
+        .forEach(child => Object.keys(options.attributes.diagrams.lines[key])
+          .forEach(attr => child.setAttribute(attr, options.attributes.diagrams.lines[key][attr]))));
+    Object.keys(options.attributes.diagrams.arrows).forEach(key => 
+      Array.from(groups.diagrams.childNodes)
+        .filter(el => el.getAttribute("class").includes("arrow"))
+        .filter(el => el.getAttribute("class").includes(key))
+        .forEach(child => Object.keys(options.attributes.diagrams.arrows[key])
+          .forEach(attr => child.setAttribute(attr, options.attributes.diagrams.arrows[key][attr]))));
+
   }
 
   // return
