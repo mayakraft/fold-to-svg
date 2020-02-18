@@ -1,6 +1,6 @@
 {
   "name": "fold-to-svg",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "convert a FOLD file into SVG",
   "main": "fold-to-svg.js",
   "scripts": {

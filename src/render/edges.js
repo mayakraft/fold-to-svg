@@ -16,7 +16,7 @@ const edges_assignment_names = {
   u: "unassigned",
 };
 
-// todo: testing. i suspect this is faster than running .toLower() on every string
+// todo: test- is this much faster than running .toLower() on every string?
 const edges_assignment_to_lowercase = {
   B: "b",
   b: "b",
