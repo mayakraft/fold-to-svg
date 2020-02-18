@@ -1,19 +1,20 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import { line, path } from "../svg/svg";
+import { line, path } from "../../include/svg";
+import * as K from "../keys";
 
 const edges_assignment_names = {
-  B: "boundary",
-  b: "boundary",
-  M: "mountain",
-  m: "mountain",
-  V: "valley",
-  v: "valley",
-  F: "mark",
-  f: "mark",
-  U: "unassigned",
-  u: "unassigned",
+  B: K.boundary,
+  b: K.boundary,
+  M: K.mountain,
+  m: K.mountain,
+  V: K.valley,
+  v: K.valley,
+  F: K.mark,
+  f: K.mark,
+  U: K.unassigned,
+  u: K.unassigned
 };
 
 // todo: test- is this much faster than running .toLower() on every string?
@@ -42,31 +43,30 @@ const edges_coords = function ({ vertices_coords, edges_vertices }) {
  * {b:[], m:[], v:[], f:[], u:[]}
  * arrays contain the unique indices of each edge from the edges_ arrays sorted by assignment
  */
-const edges_indices_classes = function ({ edges_assignment }) {
+const edges_indices_classes = function (graph) {
   const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
-  edges_assignment.map(a => edges_assignment_to_lowercase[a])
+  graph[K.edges_assignment].map(a => edges_assignment_to_lowercase[a])
     .forEach((a, i) => assignment_indices[a].push(i));
   return assignment_indices;
 }
 
 const make_edges_assignment_names = function (graph) {
-  return (graph.edges_vertices == null || graph.edges_assignment == null
-    || graph.edges_vertices.length !== graph.edges_assignment.length
+  return (graph[K.edges_vertices] == null || graph[K.edges_assignment] == null
+    || graph[K.edges_vertices].length !== graph[K.edges_assignment].length
     ? []
-    : graph.edges_assignment.map(a => edges_assignment_names[a]));
+    : graph[K.edges_assignment].map(a => edges_assignment_names[a]));
 };
 
 const edges = function (graph) {
-  if (graph.edges_vertices == null || graph.vertices_coords == null) {
+  if (graph[K.edges_vertices] == null || graph[K.vertices_coords] == null) {
     return [];
   }
-
-  const svg_edges = graph.edges_vertices
-    .map(ev => ev.map(v => graph.vertices_coords[v]))
+  const svg_edges = graph[K.edges_vertices]
+    .map(ev => ev.map(v => graph[K.vertices_coords][v]))
     .map(e => line(e[0][0], e[0][1], e[1][0], e[1][1]));
-  svg_edges.forEach((edge, i) => edge.setAttribute("id", `${i}`));
+  svg_edges.forEach((edge, i) => edge[K.setAttributeNS](null, K.index, `${i}`));
   make_edges_assignment_names(graph)
-    .forEach((a, i) => svg_edges[i].setAttribute("class", a));
+    .forEach((a, i) => svg_edges[i][K.setAttributeNS](null, K._class, a));
   return svg_edges;
 };
 
@@ -83,9 +83,9 @@ export const edges_path_data = function (graph) {
 };
 
 export const edges_by_assignment_paths_data = function (graph) {
-  if (graph.edges_vertices == null
-    || graph.vertices_coords == null
-    || graph.edges_assignment == null) {
+  if (graph[K.edges_vertices] == null
+    || graph[K.vertices_coords] == null
+    || graph[K.edges_assignment] == null) {
     return [];
   }
   const segments = edges_coords(graph);
@@ -109,7 +109,7 @@ export const edges_by_assignment_paths_data = function (graph) {
  */
 export const edges_path = function (graph) {
   // no edges_assignment exists, create one large path
-  if (graph.edges_assignment == null) {
+  if (graph[K.edges_assignment] == null) {
     const d = edges_path_data(graph);
     return d === undefined ? [] : [path(d)];
   }
@@ -117,7 +117,7 @@ export const edges_path = function (graph) {
   const ds = edges_by_assignment_paths_data(graph);
   return Object.keys(ds).map(assignment => {
     const p = path(ds[assignment]);
-    p.setAttributeNS(null, "class", edges_assignment_names[assignment]);
+    p[K.setAttributeNS](null, K._class, edges_assignment_names[assignment]);
     return p;
   });
 };
@@ -125,9 +125,9 @@ export const edges_path = function (graph) {
 export const edges_line = function (graph) {
   const lines = edges_coords(graph).map(e => line(e[0][0], e[0][1], e[1][0], e[1][1]));
   // keep track of each svg's index in the 
-  lines.forEach((l, i) => l.setAttributeNS(null, "index", i)) // `${i}`))
+  lines.forEach((l, i) => l[K.setAttributeNS](null, K.index, i)) // `${i}`))
   make_edges_assignment_names(graph)
-    .forEach((a, i) => lines[i].setAttributeNS(null, "class", a));
+    .forEach((a, i) => lines[i][K.setAttributeNS](null, K._class, a));
   return lines;
 };
 

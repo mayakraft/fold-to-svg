@@ -7,9 +7,10 @@ import { bounding_rect } from "../FOLD/boundary";
 import { flatten_frame } from "../FOLD/file_frames";
 import { all_classes } from "../FOLD/class";
 import { shadowFilter } from "../svg/effects";
-import * as SVG from "../svg/svg";
+import * as SVG from "../../include/svg";
 import Options from "../options/options";
 import recursiveFill from "../options/recursiveFill";
+import * as K from "../keys";
 
 // components
 import { boundaries_polygon } from "./boundaries";
@@ -23,7 +24,7 @@ import {
 // there is a built in preference to using faces_vertices, due to it
 // requiring fewer components to be present, and preparation being faster
 const faces_draw_function = function (graph) {
-  return graph.faces_vertices != null
+  return graph[K.faces_vertices] != null
     ? faces_vertices_polygon(graph)
     : faces_edges_polygon(graph);
 };
@@ -60,10 +61,10 @@ const fold_to_svg = function (input, options = {}) {
   const svg = SVG.svg();
   SVG.setViewBox(svg, ...bounds, options.padding);
   const classValue = all_classes(graph);
-  if (classValue !== "") { svg.setAttribute("class", classValue); }
+  if (classValue !== "") { svg[K.setAttributeNS](null, K._class, classValue); }
 
   Object.keys(options.attributes.svg)
-    .forEach(style => svg.setAttribute(style, options.attributes.svg[style]));
+    .forEach(style => svg[K.setAttributeNS](null, style, options.attributes.svg[style]));
 
   // if we need a DEFS section, add it here
   const defs = (options.stylesheet != null || options.shadows != null
@@ -72,72 +73,72 @@ const fold_to_svg = function (input, options = {}) {
   if (options.stylesheet != null) {
     const style = SVG.style(defs);
     // wrap style in CDATA section
-    const strokeVar = options.attributes.svg["stroke-width"]
-      ? options.attributes.svg["stroke-width"] : vmin / 200;
+    const strokeVar = options.attributes.svg[K.stroke_width]
+      ? options.attributes.svg[K.stroke_width] : vmin / 200;
     const cdata = (new window.DOMParser())
       .parseFromString("<xml></xml>", "application/xml")
-      .createCDATASection(`\n* { --stroke-width: ${strokeVar}; }\n${options.stylesheet}`);
-    style.appendChild(cdata);
+      .createCDATASection(`\n* { --${K.stroke_width}: ${strokeVar}; }\n${options.stylesheet}`);
+    style[K.appendChild](cdata);
   }
   if (options.shadows != null) {
-    const shadowOptions = (typeof options.shadows === "object" && options.shadows !== null
+    const shadowOptions = (typeof options.shadows === K.object && options.shadows !== null
       ? options.shadows
       : { blur: vmin / 200 });
-    defs.appendChild(shadowFilter(shadowOptions));
+    defs[K.appendChild](shadowFilter(shadowOptions));
   }
 
   // draw
   const groups = { };
-  ["boundaries", "edges", "faces", "vertices"].filter(key => options[key] === true)
+  [K.boundaries, K.edges, K.faces, K.vertices].filter(key => options[key] === true)
     .forEach((key) => {
       groups[key] = SVG.group();
-      groups[key].setAttribute("class", key);
+      groups[key][K.setAttributeNS](null, K._class, key);
     });
   // draw geometry into groups
   Object.keys(groups)
     .filter(key => component_draw_function[key] !== undefined)
     .forEach(key => component_draw_function[key](graph, options)
-      .forEach(a => groups[key].appendChild(a)));
+      .forEach(a => groups[key][K.appendChild](a)));
   // append geometry to SVG, if geometry exists
   Object.keys(groups)
     .filter(key => groups[key].childNodes.length > 0)
-    .forEach(key => svg.appendChild(groups[key]));
+    .forEach(key => svg[K.appendChild](groups[key]));
 
   // apply specific style: edges
   if (groups.edges) {
-    const edgeClasses = ["unassigned", "mark", "valley", "mountain", "boundary"];
+    const edgeClasses = [K.unassigned, K.mark, K.valley, K.mountain, K.boundary];
     Object.keys(options.attributes.edges)
       .filter(key => !edgeClasses.includes(key))
-      .forEach(key => groups.edges.setAttribute(key, options.attributes.edges[key]));
+      .forEach(key => groups.edges[K.setAttributeNS](null, key, options.attributes.edges[key]));
     Array.from(groups.edges.childNodes)
-      .forEach(child => Object.keys(options.attributes.edges[child.getAttribute("class")] || {})
-        .forEach(key => child.setAttribute(key, options.attributes.edges[child.getAttribute("class")][key])));
+      .forEach(child => Object.keys(options.attributes.edges[child.getAttribute(K._class)] || {})
+        .forEach(key => child[K.setAttributeNS](null, key, options.attributes.edges[child.getAttribute(K._class)][key])));
   }
   // faces
   if (groups.faces) {
-    const faceClasses = ["front", "back"];
+    const faceClasses = [K.front, K.back];
     Object.keys(options.attributes.faces)
       .filter(key => !faceClasses.includes(key))
-      .forEach(key => groups.faces.setAttribute(key, options.attributes.faces[key]));
+      .forEach(key => groups.faces[K.setAttributeNS](null, key, options.attributes.faces[key]));
     Array.from(groups.faces.childNodes)
-      .forEach(child => Object.keys(options.attributes.faces[child.getAttribute("class")] || {})
-        .forEach(key => child.setAttribute(key, options.attributes.faces[child.getAttribute("class")][key])));
+      .forEach(child => Object.keys(options.attributes.faces[child.getAttribute(K._class)] || {})
+        .forEach(key => child[K.setAttributeNS](null, key, options.attributes.faces[child.getAttribute(K._class)][key])));
     if (options.shadows != null) {
-      Array.from(groups.faces.childNodes).forEach(f => f.setAttribute("filter", "url(#shadow)"));
+      Array.from(groups.faces.childNodes).forEach(f => f[K.setAttributeNS](null, "filter", "url(#shadow)"));
     }
   }
   // vertices. simpler, no classes
   if (groups.vertices) {
     Object.keys(options.attributes.vertices)
       .filter(key => key !== "r")
-      .forEach(key => groups.vertices.setAttribute(key, options.attributes.vertices[key]));
+      .forEach(key => groups.vertices[K.setAttributeNS](null, key, options.attributes.vertices[key]));
     Array.from(groups.vertices.childNodes)
-      .forEach(child => child.setAttribute("r", options.attributes.vertices.r));
+      .forEach(child => child[K.setAttributeNS](null, "r", options.attributes.vertices.r));
   }
   // boundaries. simple.
   if (groups.boundaries) {
     Object.keys(options.attributes.boundaries)
-      .forEach(key => groups.boundaries.setAttribute(key, options.attributes.boundaries[key]));
+      .forEach(key => groups.boundaries[K.setAttributeNS](null, key, options.attributes.boundaries[key]));
   }
 
   // return

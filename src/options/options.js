@@ -1,8 +1,12 @@
-import { recursive_freeze } from "../FOLD/object";
+import { recursive_freeze } from "../../src/FOLD/object";
+import * as K from "../keys";
+
+const none = "none";
+const five_hundred_px = "500px";
 
 export default (vmin = 1) => recursive_freeze({
-  input: "string", // "string", "svg"
-  output: "string", // "string", "svg"
+  input: K.string, // "string", "svg"
+  output: K.string, // "string", "svg"
 
   padding: null,
   file_frame: null,
@@ -18,33 +22,33 @@ export default (vmin = 1) => recursive_freeze({
   // attributes style
   attributes: {
     svg: {
-      width: "500px",
-      height: "500px",
-      stroke: "black",
-      fill: "none",
+      width: five_hundred_px,
+      height: five_hundred_px,
+      stroke: K.black,
+      fill: none,
       "stroke-linejoin": "bevel",
       "stroke-width": vmin / 200,
     },
     boundaries: {
-      fill: "white",
+      fill: K.white,
     },
     faces: {
-      stroke: "none",
+      stroke: none,
       /* these below will be applied onto specific elements based on class */
-      front: { stroke: "black", fill: "lightgray" },
-      back: { stroke: "black", fill: "white" },
+      front: { stroke: K.black, fill: K.lightgray },
+      back: { stroke: K.black, fill: K.white },
     },
     edges: {
       /* these below will be applied onto specific elements based on class */
       boundary: {},
       mountain: { stroke: "red" },
       valley: { stroke: "blue" },
-      mark: { stroke: "lightgray" },
-      unassigned: { stroke: "lightgray" },
+      mark: { stroke: K.lightgray },
+      unassigned: { stroke: K.lightgray },
     },
     vertices: {
-      stroke: "none",
-      fill: "black",
+      stroke: none,
+      fill: K.black,
       /* these below will be applied onto specific elements */
       r: vmin / 200
     }

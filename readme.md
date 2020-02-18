@@ -24,7 +24,6 @@ defaults = {
   faces: true,
   edges: true,
   vertices: false,
-  diagrams: true, // arrows and instructions. if "re:diagrams" extension exists
 
   padding: null,  // inset the viewBox with padding. often boundary lines are clipped otherwise
   file_frame: null, // render a frame inside "file_frames", according to FOLD spec.

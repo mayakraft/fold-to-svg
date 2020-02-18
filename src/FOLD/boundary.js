@@ -2,16 +2,17 @@
  * fold to svg (c) Robby Kraft
  */
 import { make_vertices_edges } from "./make";
+import * as K from "../keys";
 
-export const bounding_rect = function ({ vertices_coords }) {
-  if (vertices_coords == null
-    || vertices_coords.length <= 0) {
+export const bounding_rect = function (graph) {
+  if (graph[K.vertices_coords] == null
+    || graph[K.vertices_coords].length <= 0) {
     return [0, 0, 0, 0];
   }
-  const dimension = vertices_coords[0].length;
+  const dimension = graph[K.vertices_coords][0].length;
   const min = Array(dimension).fill(Infinity);
   const max = Array(dimension).fill(-Infinity);
-  vertices_coords.forEach(v => v.forEach((n, i) => {
+  graph[K.vertices_coords].forEach(v => v.forEach((n, i) => {
     if (n < min[i]) { min[i] = n; }
     if (n > max[i]) { max[i] = n; }
   }));
@@ -25,8 +26,8 @@ export const bounding_rect = function ({ vertices_coords }) {
  * edges, defined by edges_assignment. no planar calculations
  */
 export const get_boundary = function (graph) {
-  if (graph.edges_assignment == null) { return { vertices: [], edges: [] }; }
-  const edges_vertices_b = graph.edges_assignment
+  if (graph[K.edges_assignment] == null) { return { vertices: [], edges: [] }; }
+  const edges_vertices_b = graph[K.edges_assignment]
     .map(a => a === "B" || a === "b");
   const vertices_edges = make_vertices_edges(graph);
   const edge_walk = [];
@@ -40,18 +41,18 @@ export const get_boundary = function (graph) {
   }
   edges_vertices_b[edgeIndex] = false;
   edge_walk.push(edgeIndex);
-  vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
-  let nextVertex = graph.edges_vertices[edgeIndex][1];
+  vertex_walk.push(graph[K.edges_vertices][edgeIndex][0]);
+  let nextVertex = graph[K.edges_vertices][edgeIndex][1];
   while (vertex_walk[0] !== nextVertex) {
     vertex_walk.push(nextVertex);
     edgeIndex = vertices_edges[nextVertex]
       .filter(v => edges_vertices_b[v])
       .shift();
     if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
-    if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
-      [, nextVertex] = graph.edges_vertices[edgeIndex];
+    if (graph[K.edges_vertices][edgeIndex][0] === nextVertex) {
+      [, nextVertex] = graph[K.edges_vertices][edgeIndex];
     } else {
-      [nextVertex] = graph.edges_vertices[edgeIndex];
+      [nextVertex] = graph[K.edges_vertices][edgeIndex];
     }
     edges_vertices_b[edgeIndex] = false;
     edge_walk.push(edgeIndex);

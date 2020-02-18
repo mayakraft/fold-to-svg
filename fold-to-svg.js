@@ -6,6 +6,8 @@
 }(this, (function () { 'use strict';
 
   function _typeof(obj) {
+    "@babel/helpers - typeof";
+
     if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
       _typeof = function (obj) {
         return typeof obj;
@@ -81,11 +83,54 @@
     throw new TypeError("Invalid attempt to destructure non-iterable instance");
   }
 
-  var isBrowser = typeof window !== "undefined" && typeof window.document !== "undefined";
-  var isNode = typeof process !== "undefined" && process.versions != null && process.versions.node != null;
-  var isWebWorker = (typeof self === "undefined" ? "undefined" : _typeof(self)) === "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
+  var coords = "coords";
+  var vertices = "vertices";
+  var edges = "edges";
+  var faces = "faces";
+  var boundaries = "boundaries";
+  var frame = "frame";
+  var file = "file";
+  var vertices_coords = "".concat(vertices, "_").concat(coords);
+  var edges_vertices = "".concat(edges, "_").concat(vertices);
+  var faces_vertices = "".concat(faces, "_").concat(vertices);
+  var faces_edges = "".concat(faces, "_").concat(edges);
+  var edges_assignment = "".concat(edges, "_assignment");
+  var faces_re_coloring = "".concat(faces, "_re:coloring");
+  var faces_re_matrix = "".concat(faces, "_re:matrix");
+  var faces_re_layer = "".concat(faces, "_re:layer");
+  var frame_parent = "".concat(frame, "_parent");
+  var frame_inherit = "".concat(frame, "_inherit");
+  var frame_classes = "".concat(frame, "_classes");
+  var file_frames = "".concat(file, "_frames");
+  var file_classes = "".concat(file, "_classes");
+  var boundary = "boundary";
+  var mountain = "mountain";
+  var valley = "valley";
+  var mark = "mark";
+  var unassigned = "unassigned";
+  var creasePattern = "creasePattern";
+  var front = "front";
+  var back = "back";
+  var _class = "class";
+  var index = "index";
+  var object = "object";
+  var string = "string";
+  var _function = "function";
+  var _undefined = "undefined";
+  var black = "black";
+  var white = "white";
+  var lightgray = "lightgray";
+  var stroke_width = "stroke-width";
+  var createElementNS = "createElementNS";
+  var setAttributeNS = "setAttributeNS";
+  var appendChild = "appendChild";
 
-  var htmlString = "<!DOCTYPE html><title> </title>";
+  var isBrowser = (typeof window === "undefined" ? "undefined" : _typeof(window)) !== _undefined && _typeof(window.document) !== _undefined;
+
+  var isNode = (typeof process === "undefined" ? "undefined" : _typeof(process)) !== _undefined && process.versions != null && process.versions.node != null;
+  var isWebWorker = (typeof self === "undefined" ? "undefined" : _typeof(self)) === object && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
+
+  var htmlString = "<!DOCTYPE html><title>.</title>";
 
   var win = function () {
     var w = {};
@@ -107,40 +152,40 @@
 
   var svgNS = "http://www.w3.org/2000/svg";
   var svg = function svg() {
-    var svgImage = win.document.createElementNS(svgNS, "svg");
+    var svgImage = win.document[createElementNS](svgNS, "svg");
     svgImage.setAttribute("version", "1.1");
     svgImage.setAttribute("xmlns", svgNS);
     return svgImage;
   };
   var group = function group(parent) {
-    var g = win.document.createElementNS(svgNS, "g");
+    var g = win.document[createElementNS](svgNS, "g");
 
     if (parent) {
-      parent.appendChild(g);
+      parent[appendChild](g);
     }
 
     return g;
   };
   var defs = function defs(parent) {
-    var defs = win.document.createElementNS(svgNS, "defs");
+    var defs = win.document[createElementNS](svgNS, "defs");
 
     if (parent) {
-      parent.appendChild(defs);
+      parent[appendChild](defs);
     }
 
     return defs;
   };
   var style = function style(parent) {
-    var s = win.document.createElementNS(svgNS, "style");
-    s.setAttribute("type", "text/css");
+    var s = win.document[createElementNS](svgNS, "style");
+    s[setAttributeNS](null, "type", "text/css");
 
     if (parent) {
-      parent.appendChild(s);
+      parent[appendChild](s);
     }
 
     return s;
   };
-  var setViewBox = function setViewBox(SVG, x, y, width, height) {
+  var setViewBox = function setViewBox(svg, x, y, width, height) {
     var padding = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
     var scale = 1.0;
     var d = width / scale - width;
@@ -149,39 +194,40 @@
     var W = width + d * 2 + padding * 2;
     var H = height + d * 2 + padding * 2;
     var viewBoxString = [X, Y, W, H].join(" ");
-    SVG.setAttributeNS(null, "viewBox", viewBoxString);
+    svg[setAttributeNS](null, "viewBox", viewBoxString);
   };
   var line = function line(x1, y1, x2, y2) {
-    var shape = win.document.createElementNS(svgNS, "line");
-    shape.setAttributeNS(null, "x1", x1);
-    shape.setAttributeNS(null, "y1", y1);
-    shape.setAttributeNS(null, "x2", x2);
-    shape.setAttributeNS(null, "y2", y2);
+    var shape = win.document[createElementNS](svgNS, "line");
+    shape[setAttributeNS](null, "x1", x1);
+    shape[setAttributeNS](null, "y1", y1);
+    shape[setAttributeNS](null, "x2", x2);
+    shape[setAttributeNS](null, "y2", y2);
     return shape;
   };
   var circle = function circle(x, y, radius) {
-    var shape = win.document.createElementNS(svgNS, "circle");
-    shape.setAttributeNS(null, "cx", x);
-    shape.setAttributeNS(null, "cy", y);
-    shape.setAttributeNS(null, "r", radius);
+    var shape = win.document[createElementNS](svgNS, "circle");
+    shape[setAttributeNS](null, "cx", x);
+    shape[setAttributeNS](null, "cy", y);
+    shape[setAttributeNS](null, "r", radius);
     return shape;
   };
   var polygon = function polygon(pointsArray) {
-    var shape = win.document.createElementNS(svgNS, "polygon");
+    var shape = win.document[createElementNS](svgNS, "polygon");
     var pointsString = pointsArray.map(function (p) {
       return "".concat(p[0], ",").concat(p[1]);
     }).join(" ");
-    shape.setAttributeNS(null, "points", pointsString);
+    shape[setAttributeNS](null, "points", pointsString);
     return shape;
   };
   var path = function path(d) {
-    var p = win.document.createElementNS(svgNS, "path");
-    p.setAttributeNS(null, "d", d);
+    var p = win.document[createElementNS](svgNS, "path");
+    p[setAttributeNS](null, "d", d);
     return p;
   };
 
   var SVG = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    svgNS: svgNS,
     svg: svg,
     group: group,
     defs: defs,
@@ -194,31 +240,31 @@
   });
 
   var vertices_circle = function vertices_circle(graph, options) {
-    if ("vertices_coords" in graph === false) {
+    if (vertices_coords in graph === false) {
       return [];
     }
 
     var radius = options && options.radius ? options.radius : 0.01;
-    var svg_vertices = graph.vertices_coords.map(function (v) {
+    var svg_vertices = graph[vertices_coords].map(function (v) {
       return circle(v[0], v[1], radius);
     });
     svg_vertices.forEach(function (c, i) {
-      return c.setAttribute("index", i);
+      return c[setAttributeNS](null, index, i);
     });
     return svg_vertices;
   };
 
   var edges_assignment_names = {
-    B: "boundary",
-    b: "boundary",
-    M: "mountain",
-    m: "mountain",
-    V: "valley",
-    v: "valley",
-    F: "mark",
-    f: "mark",
-    U: "unassigned",
-    u: "unassigned"
+    B: boundary,
+    b: boundary,
+    M: mountain,
+    m: mountain,
+    V: valley,
+    v: valley,
+    F: mark,
+    f: mark,
+    U: unassigned,
+    u: unassigned
   };
   var edges_assignment_to_lowercase = {
     B: "b",
@@ -248,8 +294,7 @@
     });
   };
 
-  var edges_indices_classes = function edges_indices_classes(_ref2) {
-    var edges_assignment = _ref2.edges_assignment;
+  var edges_indices_classes = function edges_indices_classes(graph) {
     var assignment_indices = {
       u: [],
       f: [],
@@ -257,7 +302,7 @@
       m: [],
       b: []
     };
-    edges_assignment.map(function (a) {
+    graph[edges_assignment].map(function (a) {
       return edges_assignment_to_lowercase[a];
     }).forEach(function (a, i) {
       return assignment_indices[a].push(i);
@@ -266,7 +311,7 @@
   };
 
   var make_edges_assignment_names = function make_edges_assignment_names(graph) {
-    return graph.edges_vertices == null || graph.edges_assignment == null || graph.edges_vertices.length !== graph.edges_assignment.length ? [] : graph.edges_assignment.map(function (a) {
+    return graph[edges_vertices] == null || graph[edges_assignment] == null || graph[edges_vertices].length !== graph[edges_assignment].length ? [] : graph[edges_assignment].map(function (a) {
       return edges_assignment_names[a];
     });
   };
@@ -282,7 +327,7 @@
     return path_data === "" ? undefined : path_data;
   };
   var edges_by_assignment_paths_data = function edges_by_assignment_paths_data(graph) {
-    if (graph.edges_vertices == null || graph.vertices_coords == null || graph.edges_assignment == null) {
+    if (graph[edges_vertices] == null || graph[vertices_coords] == null || graph[edges_assignment] == null) {
       return [];
     }
 
@@ -306,7 +351,7 @@
     return result;
   };
   var edges_path = function edges_path(graph) {
-    if (graph.edges_assignment == null) {
+    if (graph[edges_assignment] == null) {
       var d = edges_path_data(graph);
       return d === undefined ? [] : [path(d)];
     }
@@ -314,7 +359,7 @@
     var ds = edges_by_assignment_paths_data(graph);
     return Object.keys(ds).map(function (assignment) {
       var p = path(ds[assignment]);
-      p.setAttributeNS(null, "class", edges_assignment_names[assignment]);
+      p[setAttributeNS](null, _class, edges_assignment_names[assignment]);
       return p;
     });
   };
@@ -323,10 +368,10 @@
       return line(e[0][0], e[0][1], e[1][0], e[1][1]);
     });
     lines.forEach(function (l, i) {
-      return l.setAttributeNS(null, "index", i);
+      return l[setAttributeNS](null, index, i);
     });
     make_edges_assignment_names(graph).forEach(function (a, i) {
-      return lines[i].setAttributeNS(null, "class", a);
+      return lines[i][setAttributeNS](null, _class, a);
     });
     return lines;
   };
@@ -488,68 +533,68 @@
   };
 
   var make_faces_sidedness = function make_faces_sidedness(graph) {
-    var coloring = graph["faces_re:coloring"];
+    var coloring = graph[faces_re_coloring];
 
     if (coloring == null) {
-      coloring = "faces_re:matrix" in graph ? make_faces_coloring_from_faces_matrix(graph["faces_re:matrix"]) : make_faces_coloring(graph, 0);
+      coloring = faces_re_matrix in graph ? make_faces_coloring_from_faces_matrix(graph[faces_re_matrix]) : make_faces_coloring(graph, 0);
     }
 
     return coloring.map(function (c) {
-      return c ? "front" : "back";
+      return c ? front : back;
     });
   };
 
   var finalize_faces = function finalize_faces(graph, svg_faces) {
-    var isFoldedForm = _typeof(graph.frame_classes) === "object" && graph.frame_classes !== null && !graph.frame_classes.includes("creasePattern");
-    var orderIsCertain = graph["faces_re:layer"] != null && graph["faces_re:layer"].length === graph.faces_vertices.length;
+    var isFoldedForm = _typeof(graph.frame_classes) === object && graph.frame_classes !== null && !graph.frame_classes.includes(creasePattern);
+    var orderIsCertain = graph[faces_re_layer] != null && graph[faces_re_layer].length === graph[faces_vertices].length;
 
     if (orderIsCertain && isFoldedForm) {
       make_faces_sidedness(graph).forEach(function (side, i) {
-        return svg_faces[i].setAttribute("class", side);
+        return svg_faces[i][setAttributeNS](null, _class, side);
       });
     }
 
-    return orderIsCertain ? faces_sorted_by_layer(graph["faces_re:layer"]).map(function (i) {
+    return orderIsCertain ? faces_sorted_by_layer(graph[faces_re_layer]).map(function (i) {
       return svg_faces[i];
     }) : svg_faces;
   };
 
   var faces_vertices_polygon = function faces_vertices_polygon(graph) {
-    if ("faces_vertices" in graph === false || "vertices_coords" in graph === false) {
+    if (faces_vertices in graph === false || vertices_coords in graph === false) {
       return [];
     }
 
-    var svg_faces = graph.faces_vertices.map(function (fv) {
+    var svg_faces = graph[faces_vertices].map(function (fv) {
       return fv.map(function (v) {
-        return graph.vertices_coords[v];
+        return graph[vertices_coords][v];
       });
     }).map(function (face) {
       return polygon(face);
     });
     svg_faces.forEach(function (face, i) {
-      return face.setAttribute("index", i);
+      return face[setAttributeNS](null, index, i);
     });
     return finalize_faces(graph, svg_faces);
   };
   var faces_edges_polygon = function faces_edges_polygon(graph) {
-    if ("faces_edges" in graph === false || "edges_vertices" in graph === false || "vertices_coords" in graph === false) {
+    if (faces_edges in graph === false || edges_vertices in graph === false || vertices_coords in graph === false) {
       return [];
     }
 
-    var svg_faces = graph.faces_edges.map(function (face_edges) {
+    var svg_faces = graph[faces_edges].map(function (face_edges) {
       return face_edges.map(function (edge) {
-        return graph.edges_vertices[edge];
+        return graph[edges_vertices][edge];
       }).map(function (vi, i, arr) {
         var next = arr[(i + 1) % arr.length];
         return vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1];
       }).map(function (v) {
-        return graph.vertices_coords[v];
+        return graph[vertices_coords][v];
       });
     }).map(function (face) {
       return polygon(face);
     });
     svg_faces.forEach(function (face, i) {
-      return face.setAttribute("index", i);
+      return face[setAttributeNS](null, index, i);
     });
     return finalize_faces(graph, svg_faces);
   };
@@ -604,17 +649,15 @@
     return str[0] === "\n" ? str.slice(1) : str;
   }
 
-  var bounding_rect = function bounding_rect(_ref) {
-    var vertices_coords = _ref.vertices_coords;
-
-    if (vertices_coords == null || vertices_coords.length <= 0) {
+  var bounding_rect = function bounding_rect(graph) {
+    if (graph[vertices_coords] == null || graph[vertices_coords].length <= 0) {
       return [0, 0, 0, 0];
     }
 
-    var dimension = vertices_coords[0].length;
+    var dimension = graph[vertices_coords][0].length;
     var min = Array(dimension).fill(Infinity);
     var max = Array(dimension).fill(-Infinity);
-    vertices_coords.forEach(function (v) {
+    graph[vertices_coords].forEach(function (v) {
       return v.forEach(function (n, i) {
         if (n < min[i]) {
           min[i] = n;
@@ -628,14 +671,14 @@
     return isNaN(min[0]) || isNaN(min[1]) || isNaN(max[0]) || isNaN(max[1]) ? [0, 0, 0, 0] : [min[0], min[1], max[0] - min[0], max[1] - min[1]];
   };
   var get_boundary = function get_boundary(graph) {
-    if (graph.edges_assignment == null) {
+    if (graph[edges_assignment] == null) {
       return {
         vertices: [],
         edges: []
       };
     }
 
-    var edges_vertices_b = graph.edges_assignment.map(function (a) {
+    var edges_vertices_b = graph[edges_assignment].map(function (a) {
       return a === "B" || a === "b";
     });
     var vertices_edges = make_vertices_edges(graph);
@@ -659,8 +702,8 @@
 
     edges_vertices_b[edgeIndex] = false;
     edge_walk.push(edgeIndex);
-    vertex_walk.push(graph.edges_vertices[edgeIndex][0]);
-    var nextVertex = graph.edges_vertices[edgeIndex][1];
+    vertex_walk.push(graph[edges_vertices][edgeIndex][0]);
+    var nextVertex = graph[edges_vertices][edgeIndex][1];
 
     while (vertex_walk[0] !== nextVertex) {
       vertex_walk.push(nextVertex);
@@ -675,14 +718,14 @@
         };
       }
 
-      if (graph.edges_vertices[edgeIndex][0] === nextVertex) {
-        var _graph$edges_vertices = _slicedToArray(graph.edges_vertices[edgeIndex], 2);
+      if (graph[edges_vertices][edgeIndex][0] === nextVertex) {
+        var _graph$K$edges_vertic = _slicedToArray(graph[edges_vertices][edgeIndex], 2);
 
-        nextVertex = _graph$edges_vertices[1];
+        nextVertex = _graph$K$edges_vertic[1];
       } else {
-        var _graph$edges_vertices2 = _slicedToArray(graph.edges_vertices[edgeIndex], 1);
+        var _graph$K$edges_vertic2 = _slicedToArray(graph[edges_vertices][edgeIndex], 1);
 
-        nextVertex = _graph$edges_vertices2[0];
+        nextVertex = _graph$K$edges_vertic2[0];
       }
 
       edges_vertices_b[edgeIndex] = false;
@@ -699,7 +742,7 @@
     var newO;
     var i;
 
-    if (_typeof(o) !== "object") {
+    if (_typeof(o) !== object) {
       return o;
     }
 
@@ -735,7 +778,7 @@
     }
 
     Object.getOwnPropertyNames(input).filter(function (prop) {
-      return input[prop] !== null && (_typeof(input[prop]) === "object" || typeof input[prop] === "function") && !Object.isFrozen(input[prop]);
+      return input[prop] !== null && (_typeof(input[prop]) === object || _typeof(input[prop]) === _function) && !Object.isFrozen(input[prop]);
     }).forEach(function (prop) {
       return recursive_freeze(input[prop]);
     });
@@ -743,18 +786,18 @@
   };
 
   var flatten_frame = function flatten_frame(fold_file, frame_num) {
-    if ("file_frames" in fold_file === false || fold_file.file_frames.length < frame_num) {
+    if (file_frames in fold_file === false || fold_file[file_frames].length < frame_num) {
       return fold_file;
     }
 
-    var dontCopy = ["frame_parent", "frame_inherit"];
+    var dontCopy = [frame_parent, frame_inherit];
     var memo = {
       visited_frames: []
     };
 
     var recurse = function recurse(recurse_fold, frame, orderArray) {
       if (memo.visited_frames.indexOf(frame) !== -1) {
-        throw new Error("encountered a cycle in file_frames. can't flatten.");
+        throw new Error("flatten error:cycle");
       }
 
       memo.visited_frames.push(frame);
@@ -764,8 +807,8 @@
         return orderArray;
       }
 
-      if (recurse_fold.file_frames[frame - 1].frame_inherit && recurse_fold.file_frames[frame - 1].frame_parent != null) {
-        return recurse(recurse_fold, recurse_fold.file_frames[frame - 1].frame_parent, orderArray);
+      if (recurse_fold[file_frames][frame - 1].frame_inherit && recurse_fold[file_frames][frame - 1].frame_parent != null) {
+        return recurse(recurse_fold, recurse_fold[file_frames][frame - 1].frame_parent, orderArray);
       }
 
       return orderArray;
@@ -773,18 +816,18 @@
 
     return recurse(fold_file, frame_num, []).map(function (frame) {
       if (frame === 0) {
-        var swap = fold_file.file_frames;
-        fold_file.file_frames = null;
+        var swap = fold_file[file_frames];
+        fold_file[file_frames] = null;
         var copy = clone(fold_file);
-        fold_file.file_frames = swap;
-        delete copy.file_frames;
+        fold_file[file_frames] = swap;
+        delete copy[file_frames];
         dontCopy.forEach(function (key) {
           return delete copy[key];
         });
         return copy;
       }
 
-      var outerCopy = clone(fold_file.file_frames[frame - 1]);
+      var outerCopy = clone(fold_file[file_frames][frame - 1]);
       dontCopy.forEach(function (key) {
         return delete outerCopy[key];
       });
@@ -795,25 +838,31 @@
   };
 
   var all_classes = function all_classes(graph) {
-    var file_classes = (graph.file_classes != null ? graph.file_classes : []).join(" ");
-    var frame_classes = (graph.frame_classes != null ? graph.frame_classes : []).join(" ");
-    return [file_classes, frame_classes].filter(function (s) {
+    var file_classes$1 = (graph[file_classes] != null ? graph[file_classes] : []).join(" ");
+    var frame_classes$1 = (graph[frame_classes] != null ? graph[frame_classes] : []).join(" ");
+    return [file_classes$1, frame_classes$1].filter(function (s) {
       return s !== "";
     }).join(" ");
   };
 
   var document = win.document;
-  var svgNS$1 = "http://www.w3.org/2000/svg";
   var shadow_defaults = Object.freeze({
     blur: 0.005,
     opacity: 0.3,
-    color: "#000"
+    color: black
   });
+  var result = "result";
+  var _in = "in";
+  var blur = "blur";
+  var offsetColor = "offsetColor";
+  var offsetBlur = "offsetBlur";
+  var feMergeNode = "feMergeNode";
+  var two_hundred = "200%";
   var shadowFilter = function shadowFilter() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : shadow_defaults;
     var id_name = "shadow";
 
-    if (_typeof(options) !== "object" || options === null) {
+    if (_typeof(options) !== object || options === null) {
       options = {};
     }
 
@@ -822,45 +871,47 @@
     }).forEach(function (key) {
       options[key] = shadow_defaults[key];
     });
-    var filter = document.createElementNS(svgNS$1, "filter");
-    filter.setAttribute("width", "200%");
-    filter.setAttribute("height", "200%");
-    filter.setAttribute("id", id_name);
-    var blur = document.createElementNS(svgNS$1, "feGaussianBlur");
-    blur.setAttribute("in", "SourceAlpha");
-    blur.setAttribute("stdDeviation", options.blur);
-    blur.setAttribute("result", "blur");
-    var offset = document.createElementNS(svgNS$1, "feOffset");
-    offset.setAttribute("in", "blur");
-    offset.setAttribute("result", "offsetBlur");
-    var flood = document.createElementNS(svgNS$1, "feFlood");
-    flood.setAttribute("flood-color", options.color);
-    flood.setAttribute("flood-opacity", options.opacity);
-    flood.setAttribute("result", "offsetColor");
-    var composite = document.createElementNS(svgNS$1, "feComposite");
-    composite.setAttribute("in", "offsetColor");
-    composite.setAttribute("in2", "offsetBlur");
-    composite.setAttribute("operator", "in");
-    composite.setAttribute("result", "offsetBlur");
-    var merge = document.createElementNS(svgNS$1, "feMerge");
-    var mergeNode1 = document.createElementNS(svgNS$1, "feMergeNode");
-    var mergeNode2 = document.createElementNS(svgNS$1, "feMergeNode");
-    mergeNode2.setAttribute("in", "SourceGraphic");
-    merge.appendChild(mergeNode1);
-    merge.appendChild(mergeNode2);
-    filter.appendChild(blur);
-    filter.appendChild(offset);
-    filter.appendChild(flood);
-    filter.appendChild(composite);
-    filter.appendChild(merge);
+    var filter = document[createElementNS](svgNS, "filter");
+    filter[setAttributeNS](null, "width", two_hundred);
+    filter[setAttributeNS](null, "height", two_hundred);
+    filter[setAttributeNS](null, "id", id_name);
+    var gaussian = document[createElementNS](svgNS, "feGaussianBlur");
+    gaussian[setAttributeNS](null, _in, "SourceAlpha");
+    gaussian[setAttributeNS](null, "stdDeviation", options.blur);
+    gaussian[setAttributeNS](null, result, blur);
+    var offset = document[createElementNS](svgNS, "feOffset");
+    offset[setAttributeNS](null, _in, blur);
+    offset[setAttributeNS](null, result, offsetBlur);
+    var flood = document[createElementNS](svgNS, "feFlood");
+    flood[setAttributeNS](null, "flood-color", options.color);
+    flood[setAttributeNS](null, "flood-opacity", options.opacity);
+    flood[setAttributeNS](null, result, offsetColor);
+    var composite = document[createElementNS](svgNS, "feComposite");
+    composite[setAttributeNS](null, _in, offsetColor);
+    composite[setAttributeNS](null, "in2", offsetBlur);
+    composite[setAttributeNS](null, "operator", _in);
+    composite[setAttributeNS](null, result, offsetBlur);
+    var merge = document[createElementNS](svgNS, "feMerge");
+    var mergeNode1 = document[createElementNS](svgNS, feMergeNode);
+    var mergeNode2 = document[createElementNS](svgNS, feMergeNode);
+    mergeNode2[setAttributeNS](null, _in, "SourceGraphic");
+    merge[appendChild](mergeNode1);
+    merge[appendChild](mergeNode2);
+    filter[appendChild](gaussian);
+    filter[appendChild](offset);
+    filter[appendChild](flood);
+    filter[appendChild](composite);
+    filter[appendChild](merge);
     return filter;
   };
 
+  var none = "none";
+  var five_hundred_px = "500px";
   var Options = (function () {
     var vmin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
     return recursive_freeze({
-      input: "string",
-      output: "string",
+      input: string,
+      output: string,
       padding: null,
       file_frame: null,
       stylesheet: null,
@@ -871,25 +922,25 @@
       vertices: false,
       attributes: {
         svg: {
-          width: "500px",
-          height: "500px",
-          stroke: "black",
-          fill: "none",
+          width: five_hundred_px,
+          height: five_hundred_px,
+          stroke: black,
+          fill: none,
           "stroke-linejoin": "bevel",
           "stroke-width": vmin / 200
         },
         boundaries: {
-          fill: "white"
+          fill: white
         },
         faces: {
-          stroke: "none",
+          stroke: none,
           front: {
-            stroke: "black",
-            fill: "lightgray"
+            stroke: black,
+            fill: lightgray
           },
           back: {
-            stroke: "black",
-            fill: "white"
+            stroke: black,
+            fill: white
           }
         },
         edges: {
@@ -901,15 +952,15 @@
             stroke: "blue"
           },
           mark: {
-            stroke: "lightgray"
+            stroke: lightgray
           },
           unassigned: {
-            stroke: "lightgray"
+            stroke: lightgray
           }
         },
         vertices: {
-          stroke: "none",
-          fill: "black",
+          stroke: none,
+          fill: black,
           r: vmin / 200
         }
       }
@@ -918,38 +969,38 @@
 
   var recursive_fill = function recursive_fill(target, source) {
     Object.keys(source).forEach(function (key) {
-      if (_typeof(source[key]) === "object" && source[key] !== null) {
+      if (_typeof(source[key]) === object && source[key] !== null) {
         if (!(key in target)) {
           target[key] = {};
         }
 
         recursive_fill(target[key], source[key]);
-      } else if (_typeof(target) === "object" && !(key in target)) {
+      } else if (_typeof(target) === object && !(key in target)) {
         target[key] = source[key];
       }
     });
   };
 
   var boundaries_polygon = function boundaries_polygon(graph) {
-    if ("vertices_coords" in graph === false || "edges_vertices" in graph === false || "edges_assignment" in graph === false) {
+    if (vertices_coords in graph === false || edges_vertices in graph === false || edges_assignment in graph === false) {
       return [];
     }
 
-    var boundary = get_boundary(graph).vertices.map(function (v) {
-      return graph.vertices_coords[v];
+    var boundary$1 = get_boundary(graph).vertices.map(function (v) {
+      return graph[vertices_coords][v];
     });
 
-    if (boundary.length === 0) {
+    if (boundary$1.length === 0) {
       return [];
     }
 
-    var p = polygon(boundary);
-    p.setAttribute("class", "boundary");
+    var p = polygon(boundary$1);
+    p[setAttributeNS](null, _class, boundary);
     return [p];
   };
 
   var faces_draw_function = function faces_draw_function(graph) {
-    return graph.faces_vertices != null ? faces_vertices_polygon(graph) : faces_edges_polygon(graph);
+    return graph[faces_vertices] != null ? faces_vertices_polygon(graph) : faces_edges_polygon(graph);
   };
 
   var component_draw_function = {
@@ -970,78 +1021,78 @@
     var classValue = all_classes(graph);
 
     if (classValue !== "") {
-      svg$1.setAttribute("class", classValue);
+      svg$1[setAttributeNS](null, _class, classValue);
     }
 
     Object.keys(options.attributes.svg).forEach(function (style) {
-      return svg$1.setAttribute(style, options.attributes.svg[style]);
+      return svg$1[setAttributeNS](null, style, options.attributes.svg[style]);
     });
     var defs$1 = options.stylesheet != null || options.shadows != null ? defs(svg$1) : undefined;
 
     if (options.stylesheet != null) {
       var style$1 = style(defs$1);
-      var strokeVar = options.attributes.svg["stroke-width"] ? options.attributes.svg["stroke-width"] : vmin / 200;
-      var cdata = new win.DOMParser().parseFromString("<xml></xml>", "application/xml").createCDATASection("\n* { --stroke-width: ".concat(strokeVar, "; }\n").concat(options.stylesheet));
-      style$1.appendChild(cdata);
+      var strokeVar = options.attributes.svg[stroke_width] ? options.attributes.svg[stroke_width] : vmin / 200;
+      var cdata = new win.DOMParser().parseFromString("<xml></xml>", "application/xml").createCDATASection("\n* { --".concat(stroke_width, ": ").concat(strokeVar, "; }\n").concat(options.stylesheet));
+      style$1[appendChild](cdata);
     }
 
     if (options.shadows != null) {
-      var shadowOptions = _typeof(options.shadows) === "object" && options.shadows !== null ? options.shadows : {
+      var shadowOptions = _typeof(options.shadows) === object && options.shadows !== null ? options.shadows : {
         blur: vmin / 200
       };
-      defs$1.appendChild(shadowFilter(shadowOptions));
+      defs$1[appendChild](shadowFilter(shadowOptions));
     }
 
     var groups = {};
-    ["boundaries", "edges", "faces", "vertices"].filter(function (key) {
+    [boundaries, edges, faces, vertices].filter(function (key) {
       return options[key] === true;
     }).forEach(function (key) {
       groups[key] = group();
-      groups[key].setAttribute("class", key);
+      groups[key][setAttributeNS](null, _class, key);
     });
     Object.keys(groups).filter(function (key) {
       return component_draw_function[key] !== undefined;
     }).forEach(function (key) {
       return component_draw_function[key](graph, options).forEach(function (a) {
-        return groups[key].appendChild(a);
+        return groups[key][appendChild](a);
       });
     });
     Object.keys(groups).filter(function (key) {
       return groups[key].childNodes.length > 0;
     }).forEach(function (key) {
-      return svg$1.appendChild(groups[key]);
+      return svg$1[appendChild](groups[key]);
     });
 
     if (groups.edges) {
-      var edgeClasses = ["unassigned", "mark", "valley", "mountain", "boundary"];
+      var edgeClasses = [unassigned, mark, valley, mountain, boundary];
       Object.keys(options.attributes.edges).filter(function (key) {
         return !edgeClasses.includes(key);
       }).forEach(function (key) {
-        return groups.edges.setAttribute(key, options.attributes.edges[key]);
+        return groups.edges[setAttributeNS](null, key, options.attributes.edges[key]);
       });
       Array.from(groups.edges.childNodes).forEach(function (child) {
-        return Object.keys(options.attributes.edges[child.getAttribute("class")] || {}).forEach(function (key) {
-          return child.setAttribute(key, options.attributes.edges[child.getAttribute("class")][key]);
+        return Object.keys(options.attributes.edges[child.getAttribute(_class)] || {}).forEach(function (key) {
+          return child[setAttributeNS](null, key, options.attributes.edges[child.getAttribute(_class)][key]);
         });
       });
     }
 
     if (groups.faces) {
-      var faceClasses = ["front", "back"];
+      var faceClasses = [front, back];
       Object.keys(options.attributes.faces).filter(function (key) {
         return !faceClasses.includes(key);
       }).forEach(function (key) {
-        return groups.faces.setAttribute(key, options.attributes.faces[key]);
+        return groups.faces[setAttributeNS](null, key, options.attributes.faces[key]);
       });
       Array.from(groups.faces.childNodes).forEach(function (child) {
-        return Object.keys(options.attributes.faces[child.getAttribute("class")] || {}).forEach(function (key) {
-          return child.setAttribute(key, options.attributes.faces[child.getAttribute("class")][key]);
+        return Object.keys(options.attributes.faces[child.getAttribute(_class)] || {}).forEach(function (key) {
+          return child[setAttributeNS](null, key, options.attributes.faces[child.getAttribute(_class)][key]);
         });
       });
 
       if (options.shadows != null) {
         Array.from(groups.faces.childNodes).forEach(function (f) {
-          return f.setAttribute("filter", "url(#shadow)");
+          return f[setAttributeNS](null, "filter", "url(#shadow)");
         });
       }
     }
@@ -1050,16 +1101,16 @@
       Object.keys(options.attributes.vertices).filter(function (key) {
         return key !== "r";
       }).forEach(function (key) {
-        return groups.vertices.setAttribute(key, options.attributes.vertices[key]);
+        return groups.vertices[setAttributeNS](null, key, options.attributes.vertices[key]);
       });
       Array.from(groups.vertices.childNodes).forEach(function (child) {
-        return child.setAttribute("r", options.attributes.vertices.r);
+        return child[setAttributeNS](null, "r", options.attributes.vertices.r);
       });
     }
 
     if (groups.boundaries) {
       Object.keys(options.attributes.boundaries).forEach(function (key) {
-        return groups.boundaries.setAttribute(key, options.attributes.boundaries[key]);
+        return groups.boundaries[setAttributeNS](null, key, options.attributes.boundaries[key]);
       });
     }
 
@@ -1077,11 +1128,11 @@
       return {};
     }
 
-    if (_typeof(input) === "object" && input !== null) {
+    if (_typeof(input) === object && input !== null) {
       return input;
     }
 
-    if (typeof input === "string" || input instanceof String) {
+    if (_typeof(input) === string || input instanceof String) {
       try {
         var obj = JSON.parse(input);
         return obj;
@@ -1090,7 +1141,7 @@
       }
     }
 
-    throw new TypeError("required 'String' or 'Object'");
+    throw new TypeError("input requires ".concat(string, " or ").concat(object));
   };
 
   var FoldToSvg = function FoldToSvg(input, options) {

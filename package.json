@@ -1,8 +1,8 @@
 {
   "name": "fold-to-svg",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "convert a FOLD file into SVG",
-  "main": "fold-to-svg.js",
+  "main": "fold-to-svg.min.js",
   "scripts": {
     "test": "jest",
     "clean": "node tests/clean.js"
@@ -15,7 +15,7 @@
     "draw",
     "svg",
     "crease pattern",
-    "diagram",
+    "visualize",
     "convert",
     "fold",
     "file",
@@ -25,16 +25,16 @@
     "xmldom": "^0.2.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.7",
-    "@babel/polyfill": "^7.7.0",
-    "@babel/preset-env": "^7.7.7",
+    "@babel/core": "^7.8.4",
+    "@babel/polyfill": "^7.8.3",
+    "@babel/preset-env": "^7.8.4",
     "babel-preset-minify": "^0.5.1",
-    "core-js": "^3.2.1",
+    "core-js": "^3.6.4",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.2.0",
-    "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-import": "^2.20.1",
     "jest": "^24.9.0",
-    "rollup": "^1.29.0",
+    "rollup": "^1.31.1",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-babel-minify": "^9.1.0",
     "rollup-plugin-cleanup": "^3.1.1",
