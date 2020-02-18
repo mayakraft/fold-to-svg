@@ -50,13 +50,4 @@ FoldToSvg.edges_line = edges_line;
 FoldToSvg.faces_vertices_polygon = faces_vertices_polygon;
 FoldToSvg.faces_edges_polygon = faces_edges_polygon;
 
-// FoldToSvg.components = {
-//   boundaries: svgBoundaries,
-//   vertices: svgVertices,
-//   edges: svgEdges,
-//   faces: svgFacesVertices,
-//   faces_vertices: svgFacesVertices,
-//   faces_edges: svgFacesEdges
-// };
-
 export default FoldToSvg;

@@ -2,15 +2,14 @@
  * fold to svg (c) Robby Kraft
  */
 import vkXML from "../../include/vkbeautify-xml";
-import math from "../../include/math";
 import window from "../environment/window";
-import defaultStyle from "../styles/default.css";
 import { bounding_rect } from "../FOLD/boundary";
 import { flatten_frame } from "../FOLD/file_frames";
 import { all_classes } from "../FOLD/class";
-import { recursive_freeze } from "../FOLD/object";
 import { shadowFilter } from "../svg/effects";
 import * as SVG from "../svg/svg";
+import Options from "../options/options";
+import recursiveFill from "../options/recursiveFill";
 
 // components
 import { boundaries_polygon } from "./boundaries";
@@ -20,7 +19,6 @@ import {
   faces_vertices_polygon,
   faces_edges_polygon
 } from "./faces";
-import renderDiagrams from "./diagrams";
 
 // there is a built in preference to using faces_vertices, due to it
 // requiring fewer components to be present, and preparation being faster
@@ -34,88 +32,7 @@ const component_draw_function = {
   vertices: vertices_circle,
   edges: edges_path,
   faces: faces_draw_function,
-  boundaries: boundaries_polygon,
-  diagrams: renderDiagrams,
-};
-
-const makeDefaults = (vmin = 1) => recursive_freeze({
-  input: "string", // "string", "svg"
-  output: "string", // "string", "svg"
-
-  padding: null,
-  file_frame: null,
-  stylesheet: null,
-  shadows: null,
-
-  // show / hide. is it visible?
-  diagrams: true, // if "re:diagrams" exists
-  boundaries: true,
-  faces: true,
-  edges: true,
-  vertices: false,
-
-  // attributes style
-  attributes: {
-    svg: {
-      width: "500px",
-      height: "500px",
-      stroke: "black",
-      fill: "none",
-      "stroke-linejoin": "bevel",
-      "stroke-width": vmin / 200,
-    },
-    boundaries: {
-      fill: "white",
-    },
-    faces: {
-      stroke: "none",
-      /* these below will be applied onto specific elements based on class */
-      front: { stroke: "black", fill: "gray" },
-      back: { stroke: "black", fill: "white" },
-    },
-    edges: {
-      /* these below will be applied onto specific elements based on class */
-      boundary: {},
-      mountain: { stroke: "red" },
-      valley: { stroke: "blue" },
-      mark: { stroke: "lightgray" },
-      unassigned: { stroke: "lightgray" },
-    },
-    vertices: {
-      stroke: "none",
-      fill: "black",
-      /* these below will be applied onto specific elements */
-      r: vmin / 200
-    },
-    diagrams: {
-      lines: {
-        valley: {
-          stroke: "blue",
-          "stroke-width": vmin / 100,
-          "stroke-dasharray": `${vmin / 50} ${vmin / 100}`
-        },
-        mountain: {
-          stroke: "red",
-          "stroke-width": vmin / 100,
-          "stroke-dasharray": `${vmin / 50} ${vmin / 100}`
-        }
-      },
-      arrows: {
-        valley: { stroke: "black", fill: "black" }
-      }
-    }
-  }
-});
-
-const recursiveAssign = function (target, source) {
-  Object.keys(source).forEach((key) => {
-    if (typeof source[key] === "object" && source[key] !== null) {
-      if (!(key in target)) { target[key] = {}; }
-      recursiveAssign(target[key], source[key])
-    } else if (typeof target === "object" && !(key in target)) {
-      target[key] = source[key];
-    }
-  });
+  boundaries: boundaries_polygon
 };
 
 /**
@@ -123,6 +40,11 @@ const recursiveAssign = function (target, source) {
  * specify a frame number otherwise it will render the top level
  *
  * input type should be "object". type should already be checked
+ *
+ * 1. get the graph, run a few tests on it, gather some properties
+ * 2. initialize a set of options that take properties as input
+ * 3. create and draw svg
+ *
  */
 const fold_to_svg = function (input, options = {}) {
   // get the FOLD input
@@ -132,8 +54,8 @@ const fold_to_svg = function (input, options = {}) {
   const bounds = bounding_rect(graph);
   const vmin = Math.min(bounds[2], bounds[3]);
 
-  // sanitize options
-  recursiveAssign(options, makeDefaults(vmin));
+  // options
+  recursiveFill(options, Options(vmin));
 
   const svg = SVG.svg();
   SVG.setViewBox(svg, ...bounds, options.padding);
@@ -163,12 +85,10 @@ const fold_to_svg = function (input, options = {}) {
       : { blur: vmin / 200 });
     defs.appendChild(shadowFilter(shadowOptions));
   }
-  // override diagrams to false if there is no diagram information
-  options.diagrams = !!(options.diagrams && (graph["re:diagrams"] != null));
 
   // draw
   const groups = { };
-  ["boundaries", "edges", "faces", "vertices", "diagrams"].filter(key => options[key] === true)
+  ["boundaries", "edges", "faces", "vertices"].filter(key => options[key] === true)
     .forEach((key) => {
       groups[key] = SVG.group();
       groups[key].setAttribute("class", key);
@@ -218,21 +138,6 @@ const fold_to_svg = function (input, options = {}) {
   if (groups.boundaries) {
     Object.keys(options.attributes.boundaries)
       .forEach(key => groups.boundaries.setAttribute(key, options.attributes.boundaries[key]));
-  }
-  if (groups.diagrams) {
-    Object.keys(options.attributes.diagrams.lines).forEach(key => 
-      Array.from(groups.diagrams.childNodes)
-        .filter(el => el.tagName === "line")
-        .filter(el => el.getAttribute("class").includes(key))
-        .forEach(child => Object.keys(options.attributes.diagrams.lines[key])
-          .forEach(attr => child.setAttribute(attr, options.attributes.diagrams.lines[key][attr]))));
-    Object.keys(options.attributes.diagrams.arrows).forEach(key => 
-      Array.from(groups.diagrams.childNodes)
-        .filter(el => el.getAttribute("class").includes("arrow"))
-        .filter(el => el.getAttribute("class").includes(key))
-        .forEach(child => Object.keys(options.attributes.diagrams.arrows[key])
-          .forEach(attr => child.setAttribute(attr, options.attributes.diagrams.arrows[key][attr]))));
-
   }
 
   // return

@@ -8,6 +8,8 @@ import {
 
 import { polygon } from "../svg/svg";
 
+// todo: include sorting with "facesOrder"
+
 const faces_sorted_by_layer = function (faces_layer) {
   return faces_layer.map((layer, i) => ({ layer, i }))
     .sort((a, b) => a.layer - b.layer)
