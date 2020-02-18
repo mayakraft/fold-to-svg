@@ -7,7 +7,7 @@ import {
   isNode,
 } from "./detect";
 
-const htmlString = "<!DOCTYPE html><title> </title>";
+const htmlString = "<!DOCTYPE html><title>.</title>";
 
 const win = (function () {
   let w = {};

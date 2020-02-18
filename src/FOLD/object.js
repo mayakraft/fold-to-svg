@@ -7,11 +7,14 @@
  * - it doesn't detect recursive cycles
  * - weird behavior around Proxys
  */
+
+import * as keys from "../keys";
+
 export const clone = function (o) {
   // from https://jsperf.com/deep-copy-vs-json-stringify-json-parse/5
   let newO;
   let i;
-  if (typeof o !== "object") {
+  if (typeof o !== keys.object) {
     return o;
   }
   if (!o) {
@@ -40,7 +43,7 @@ export const recursive_freeze = function (input) {
     return input;
   }
   Object.getOwnPropertyNames(input).filter(prop => input[prop] !== null
-    && (typeof input[prop] === "object" || typeof input[prop] === "function")
+    && (typeof input[prop] === keys.object || typeof input[prop] === keys._function)
     && !Object.isFrozen(input[prop]))
     .forEach(prop => recursive_freeze(input[prop]));
   return input;

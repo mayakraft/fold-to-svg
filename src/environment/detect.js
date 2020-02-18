@@ -1,14 +1,17 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-const isBrowser = typeof window !== "undefined"
-  && typeof window.document !== "undefined";
 
-const isNode = typeof process !== "undefined"
+import * as K from "../keys";
+
+const isBrowser = typeof window !== K._undefined
+  && typeof window.document !== K._undefined;
+
+const isNode = typeof process !== K._undefined
   && process.versions != null
   && process.versions.node != null;
 
-const isWebWorker = typeof self === "object"
+const isWebWorker = typeof self === K.object
   && self.constructor
   && self.constructor.name === "DedicatedWorkerGlobalScope";
 

@@ -14,15 +14,16 @@ import {
 } from "./render/faces";
 
 import render from "./render/index";
+import * as K from "./keys";
 
 const getObject = function (input) {
   if (input == null) {
     return {};
   }
-  if (typeof input === "object" && input !== null) {
+  if (typeof input === K.object && input !== null) {
     return input;
   }
-  if (typeof input === "string" || input instanceof String) {
+  if (typeof input === K.string || input instanceof String) {
     try {
       const obj = JSON.parse(input);
       return obj;
@@ -30,7 +31,7 @@ const getObject = function (input) {
       throw error;
     }
   }
-  throw new TypeError("required 'String' or 'Object'");
+  throw new TypeError(`input requires ${K.string} or ${K.object}`);
 };
 
 const FoldToSvg = function (input, options) {
