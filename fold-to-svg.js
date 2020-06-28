@@ -157,7 +157,7 @@
     svgImage.setAttribute("xmlns", svgNS);
     return svgImage;
   };
-  var group = function group(parent) {
+  var g = function g(parent) {
     var g = win.document[createElementNS](svgNS, "g");
 
     if (parent) {
@@ -229,7 +229,7 @@
     __proto__: null,
     svgNS: svgNS,
     svg: svg,
-    group: group,
+    g: g,
     defs: defs,
     style: style,
     setViewBox: setViewBox,
@@ -597,6 +597,21 @@
       return face[setAttributeNS](null, index, i);
     });
     return finalize_faces(graph, svg_faces);
+  };
+
+  var applyToRabbitEar = function applyToRabbitEar(FoldToSvg, RabbitEar) {
+    var thisToSVG = function thisToSVG() {
+      return FoldToSvg.apply(void 0, [this].concat(Array.prototype.slice.call(arguments)));
+    };
+
+    RabbitEar.__prototypes__.cp.svg = thisToSVG;
+    RabbitEar.__prototypes__.graph.svg = thisToSVG;
+  };
+
+  var Append = function Append(library) {
+    if (typeof library.cp === "function" && typeof library.graph === "function" && typeof library.origami === "function") {
+      applyToRabbitEar(this, library);
+    }
   };
 
   function vkXML (text, step) {
@@ -1047,7 +1062,7 @@
     [boundaries, edges, faces, vertices].filter(function (key) {
       return options[key] === true;
     }).forEach(function (key) {
-      groups[key] = group();
+      groups[key] = g();
       groups[key][setAttributeNS](null, _class, key);
     });
     Object.keys(groups).filter(function (key) {
@@ -1160,6 +1175,7 @@
   FoldToSvg.edges_line = edges_line;
   FoldToSvg.faces_vertices_polygon = faces_vertices_polygon;
   FoldToSvg.faces_edges_polygon = faces_edges_polygon;
+  FoldToSvg.append = Append.bind(FoldToSvg);
 
   return FoldToSvg;
 

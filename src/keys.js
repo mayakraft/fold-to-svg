@@ -1,3 +1,6 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 export const coords = "coords";
 export const vertices = "vertices";
 export const edges = "edges";
@@ -46,4 +49,3 @@ export const stroke_width = "stroke-width";
 export const createElementNS = "createElementNS";
 export const setAttributeNS = "setAttributeNS";
 export const appendChild = "appendChild";
-

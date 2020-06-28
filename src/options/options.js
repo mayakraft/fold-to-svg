@@ -1,4 +1,4 @@
-import { recursive_freeze } from "../../src/FOLD/object";
+import { recursive_freeze } from "../FOLD/object";
 import * as K from "../keys";
 
 const none = "none";

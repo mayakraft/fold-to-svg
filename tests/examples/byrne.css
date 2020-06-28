@@ -8,11 +8,15 @@ polygon {
   stroke-linejoin: bevel;
 }
 .boundary {
-  fill: #edb;
+  fill: #fed;
   stroke: black;
 }
-.mark { stroke: #aaa; }
-.mountain { stroke: #e53; }
+.mark {
+  stroke: #aaa;
+}
+.mountain {
+  stroke: #e53;
+}
 .valley {
   stroke: #158;
   stroke-dasharray: calc(var(--stroke-width) * 2);
@@ -21,7 +25,15 @@ polygon {
   fill: none;
   stroke: none;
 }
-.foldedForm .faces polygon { stroke: black; }
-.foldedForm .faces .front { fill: linen; }
-.foldedForm .faces .back { fill: peru; }
-.foldedForm .creases line { stroke: none; }
+.foldedForm .faces polygon {
+  stroke: black;
+}
+.foldedForm .faces .front {
+  fill: linen;
+}
+.foldedForm .faces .back {
+  fill: peru;
+}
+.foldedForm .creases line {
+  stroke: none;
+}

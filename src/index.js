@@ -12,7 +12,7 @@ import {
   faces_vertices_polygon,
   faces_edges_polygon
 } from "./render/faces";
-
+import Append from "./environment/append";
 import render from "./render/index";
 import * as K from "./keys";
 
@@ -50,5 +50,6 @@ FoldToSvg.edges_path = edges_path;
 FoldToSvg.edges_line = edges_line;
 FoldToSvg.faces_vertices_polygon = faces_vertices_polygon;
 FoldToSvg.faces_edges_polygon = faces_edges_polygon;
+FoldToSvg.append = Append.bind(FoldToSvg);
 
 export default FoldToSvg;

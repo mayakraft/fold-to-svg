@@ -13,7 +13,7 @@ export const svg = function () {
   return svgImage;
 };
 
-export const group = function (parent) {
+export const g = function (parent) {
   const g = window.document[K.createElementNS](svgNS, "g");
   if (parent) { parent[K.appendChild](g); }
   return g;

@@ -91,7 +91,7 @@ const fold_to_svg = function (input, options = {}) {
   const groups = { };
   [K.boundaries, K.edges, K.faces, K.vertices].filter(key => options[key] === true)
     .forEach((key) => {
-      groups[key] = SVG.group();
+      groups[key] = SVG.g();
       groups[key][K.setAttributeNS](null, K._class, key);
     });
   // draw geometry into groups
