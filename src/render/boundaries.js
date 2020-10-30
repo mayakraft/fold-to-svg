@@ -1,7 +1,7 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import { get_boundary } from "../../src/FOLD/boundary";
+import { get_boundary } from "../../src/graph/boundary";
 import { polygon } from "../../include/svg";
 import * as K from "../keys";
 

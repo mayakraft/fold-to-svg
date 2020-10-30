@@ -1,4 +1,4 @@
-import { recursive_freeze } from "../FOLD/object";
+import { recursive_freeze } from "../environment/javascript";
 import * as K from "../keys";
 
 const none = "none";

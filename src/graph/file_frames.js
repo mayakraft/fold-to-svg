@@ -1,7 +1,7 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import { clone } from "./object";
+import { clone } from "../environment/javascript";
 import * as K from "../keys";
 
 export const flatten_frame = function (fold_file, frame_num) {

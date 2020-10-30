@@ -17,10 +17,10 @@ module.exports = [{
       comments: "none",
       maxEmptyLines: 0,
     }),
-    babel({
-      babelrc: false,
-      presets: [["@babel/env", { modules: false }]],
-    }),
+    // babel({
+    //   babelrc: false,
+    //   presets: [["@babel/env", { modules: false }]],
+    // }),
     string({
       include: "**/*.css", // allows .fold files to be imported as a module
     }),
@@ -37,11 +37,11 @@ module.exports = [{
   },
   plugins: [
     cleanup({ comments: "none" }),
-    babel({
-      babelrc: false,
-      presets: [["@babel/env", { modules: false }]],
-    }),
-    minify({ mangle: { names: false } }),
+    // babel({
+    //   babelrc: false,
+    //   presets: [["@babel/env", { modules: false }]],
+    // }),
+    // minify({ mangle: { names: false } }),
     string({
       include: "**/*.css", // allows .fold files to be imported as a module
     }),
