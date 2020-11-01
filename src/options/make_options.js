@@ -1,3 +1,6 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import { bounding_rect } from "../graph/boundary";
 import { recursive_assign } from "../environment/javascript";
 import Options from "./options";

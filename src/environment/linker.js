@@ -1,3 +1,7 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
+
 // append this library to be a part of the larger library
 // const applyToRabbitEar = (FoldToSvg, ear) => {
 //   const thisToSVG = function () {

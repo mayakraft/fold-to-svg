@@ -9,7 +9,6 @@
 * MIT license:
 *   http://www.opensource.org/licenses/mit-license.php
 */
-
 export default function (text, step) {
   const ar = text.replace(/>\s{0,}</g, "><")
     .replace(/</g, "~::~<")
@@ -69,4 +68,4 @@ export default function (text, step) {
     }
   }
   return (str[0] === "\n") ? str.slice(1) : str;
-}
+};

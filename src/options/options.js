@@ -1,5 +1,8 @@
-import { recursive_freeze } from "../environment/javascript";
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import * as K from "../keys";
+import { recursive_freeze } from "../environment/javascript";
 
 const none = "none";
 const five_hundred_px = "500px";

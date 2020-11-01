@@ -1,5 +1,7 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import * as K from "../../keys";
-// import SVG from "../../../include/svg";
 import Libraries from "../../environment/libraries";
 import { boundaries_polygon } from "./boundaries";
 import { vertices_circle } from "./vertices";

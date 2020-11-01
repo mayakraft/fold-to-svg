@@ -1,7 +1,6 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-
 import * as K from "../keys";
 
 export const graph_classes = function (graph) {

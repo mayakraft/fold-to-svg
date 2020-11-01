@@ -1,3 +1,6 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import * as K from "../../keys";
 
 // in each of these style functions, options has already been shortcut to the
@@ -37,23 +40,3 @@ const style_component = (group, { attributes }, component) => {
 };
 
 export default style_component;
-
-// const style_faces = (group, opts) => style_component(group, opts, "faces");
-// const style_edges = (group, opts) => style_component(group, opts, "edges");
-// const style_vertices = (group, opts) => style_component(group, opts, "vertices");
-// const style_boundaries = (group, opts) => style_component(group, opts, "boundaries");
-// const style_boundaries = (group, opts) => {};
-
-// const style_boundaries = (group, opts) => {
-//   Object.keys(opts)
-//     .forEach(key => group[K.setAttributeNS](null, key, opts[key]));
-// };
-
-// const style_func = {
-//   vertices: style_vertices,
-//   edges: style_edges,
-//   faces: style_faces,
-//   boundaries: style_boundaries,
-// };
-
-// export default style_func;

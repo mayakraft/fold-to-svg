@@ -1,8 +1,8 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import window from "../environment/window";
 import * as K from "../keys";
+import window from "../environment/window";
 
 const NS = "http://www.w3.org/2000/svg";
 

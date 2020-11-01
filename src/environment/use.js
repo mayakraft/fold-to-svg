@@ -1,3 +1,6 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import libraries from "./libraries";
 
 const use = (library) => {

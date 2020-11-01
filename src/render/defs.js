@@ -1,6 +1,8 @@
+/**
+ * fold to svg (c) Robby Kraft
+ */
 import * as K from "../keys";
 import Libraries from "../environment/libraries";
-// import SVG from "../../include/svg";
 import window from "../environment/window";
 import { shadowFilter } from "./effects";
 import { bounding_rect } from "../graph/boundary";

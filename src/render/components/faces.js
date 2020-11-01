@@ -1,13 +1,12 @@
 /**
  * fold to svg (c) Robby Kraft
  */
+import * as K from "../../keys";
+import Libraries from "../../environment/libraries";
 import {
   make_faces_coloring_from_faces_matrix,
   make_faces_coloring,
 } from "../../graph/make";
-import * as K from "../../keys";
-import Libraries from "../../environment/libraries";
-// import SVG from "../../../include/svg";
 
 // todo: include sorting with "facesOrder"
 
@@ -52,7 +51,8 @@ export const faces_vertices_polygon = function (graph) {
     return [];
   }
   const svg_faces = graph[K.faces_vertices]
-    .map(fv => fv.map(v => graph[K.vertices_coords][v]))
+    // .map(fv => fv.map(v => graph[K.vertices_coords][v]))
+    .map(fv => fv.map(v => [0, 1].map(i => graph[K.vertices_coords][v][i])))
     .map(face => Libraries.SVG.polygon(face));
   svg_faces.forEach((face, i) => face[K.setAttributeNS](null, K.index, i)); // `${i}`));
   return finalize_faces(graph, svg_faces);
@@ -70,7 +70,8 @@ export const faces_edges_polygon = function (graph) {
       .map((vi, i, arr) => {
         const next = arr[(i + 1) % arr.length];
         return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
-      }).map(v => graph[K.vertices_coords][v]))
+      // }).map(v => graph[K.vertices_coords][v]))
+      }).map(v => [0, 1].map(i => graph[K.vertices_coords][v][i])))
     .map(face => Libraries.SVG.polygon(face));
   svg_faces.forEach((face, i) => face[K.setAttributeNS](null, K.index, i)); // `${i}`));
   return finalize_faces(graph, svg_faces);
