@@ -14,7 +14,7 @@ export const boundaries_polygon = (graph) => {
   }
   const boundary = get_boundary(graph)
     .vertices
-    .map(v => graph[K.vertices_coords][v]);
+    .map(v => [0, 1].map(i => graph[K.vertices_coords][v][i]));
   if (boundary.length === 0) { return []; }
   const p = Libraries.SVG.polygon(boundary);
   p[K.setAttributeNS](null, K._class, K.boundary);
