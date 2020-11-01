@@ -1,4 +1,4 @@
-import * as K from "../keys";
+import K from "../keys";
 
 /**
  * this clone function is decent, except for:
@@ -39,7 +39,7 @@ export const recursive_freeze = function (input) {
     return input;
   }
   Object.getOwnPropertyNames(input).filter(prop => input[prop] !== null
-    && (typeof input[prop] === K.object || typeof input[prop] === K._function)
+    && (typeof input[prop] === K.object || typeof input[prop] === K.function)
     && !Object.isFrozen(input[prop]))
     .forEach(prop => recursive_freeze(input[prop]));
   return input;

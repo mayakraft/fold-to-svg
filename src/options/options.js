@@ -1,5 +1,5 @@
 import { recursive_freeze } from "../environment/javascript";
-import * as K from "../keys";
+import K from "../keys";
 
 const none = "none";
 const five_hundred_px = "500px";
@@ -29,6 +29,9 @@ export default (vmin = 1) => recursive_freeze({
       "stroke-linejoin": "bevel",
       "stroke-width": vmin / 200,
     },
+    circle: {
+      r: vmin / 200,
+    },
     boundaries: {
       fill: K.white,
     },
@@ -49,8 +52,6 @@ export default (vmin = 1) => recursive_freeze({
     vertices: {
       stroke: none,
       fill: K.black,
-      /* these below will be applied onto specific elements */
-      r: vmin / 200
     }
   }
 });

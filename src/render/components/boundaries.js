@@ -2,10 +2,11 @@
  * fold to svg (c) Robby Kraft
  */
 import { get_boundary } from "../../../src/graph/boundary";
-import { polygon } from "../../../include/svg";
-import * as K from "../../keys";
+// import SVG from "../../../include/svg";
+import Libraries from "../../environment/libraries";
+import K from "../../keys";
 
-export const boundaries_polygon = function (graph) {
+export const boundaries_polygon = (graph) => {
   // todo this needs to be able to handle multiple boundaries
   if (K.vertices_coords in graph === false
     || K.edges_vertices in graph === false
@@ -16,7 +17,7 @@ export const boundaries_polygon = function (graph) {
     .vertices
     .map(v => graph[K.vertices_coords][v]);
   if (boundary.length === 0) { return []; }
-  const p = polygon(boundary);
-  p[K.setAttributeNS](null, K._class, K.boundary);
+  const p = Libraries.SVG.polygon(boundary);
+  p[K.setAttributeNS](null, K.class, K.boundary);
   return [p];
 };

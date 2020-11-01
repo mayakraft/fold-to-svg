@@ -1,14 +1,8 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import * as K from "../keys";
-import * as SVG from "../../include/svg";
-import vkXML from "../../include/vkbeautify-xml";
-import window from "../environment/window";
-import { bounding_rect } from "../graph/boundary";
-import { flatten_frame } from "../graph/file_frames";
+import K from "../keys";
 import make_options from "../options/make_options";
-// components
 import render_components from "./components/index";
 import Defs from "./defs";
 import SvgAttributes from "./attributes";

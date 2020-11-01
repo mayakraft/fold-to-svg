@@ -1,8 +1,9 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import { line, path } from "../../../include/svg";
-import * as K from "../../keys";
+// import SVG from "../../../include/svg";
+import Libraries from "../../environment/libraries";
+import K from "../../keys";
 
 const edges_assignment_names = {
   B: K.boundary,
@@ -63,10 +64,10 @@ const edges = function (graph) {
   }
   const svg_edges = graph[K.edges_vertices]
     .map(ev => ev.map(v => graph[K.vertices_coords][v]))
-    .map(e => line(e[0][0], e[0][1], e[1][0], e[1][1]));
+    .map(e => Libraries.SVG.line(e[0][0], e[0][1], e[1][0], e[1][1]));
   svg_edges.forEach((edge, i) => edge[K.setAttributeNS](null, K.index, `${i}`));
   make_edges_assignment_names(graph)
-    .forEach((a, i) => svg_edges[i][K.setAttributeNS](null, K._class, a));
+    .forEach((a, i) => svg_edges[i][K.setAttributeNS](null, K.class, a));
   return svg_edges;
 };
 
@@ -111,23 +112,23 @@ export const edges_path = function (graph) {
   // no edges_assignment exists, create one large path
   if (graph[K.edges_assignment] == null) {
     const d = edges_path_data(graph);
-    return d === undefined ? [] : [path(d)];
+    return d === undefined ? [] : [Libraries.SVG.path(d)];
   }
   // split up each path based on 
   const ds = edges_by_assignment_paths_data(graph);
   return Object.keys(ds).map(assignment => {
-    const p = path(ds[assignment]);
-    p[K.setAttributeNS](null, K._class, edges_assignment_names[assignment]);
+    const p = Libraries.SVG.path(ds[assignment]);
+    p[K.setAttributeNS](null, K.class, edges_assignment_names[assignment]);
     return p;
   });
 };
 
 export const edges_line = function (graph) {
-  const lines = edges_coords(graph).map(e => line(e[0][0], e[0][1], e[1][0], e[1][1]));
+  const lines = edges_coords(graph).map(e => Libraries.SVG.line(e[0][0], e[0][1], e[1][0], e[1][1]));
   // keep track of each svg's index in the 
   lines.forEach((l, i) => l[K.setAttributeNS](null, K.index, i)) // `${i}`))
   make_edges_assignment_names(graph)
-    .forEach((a, i) => lines[i][K.setAttributeNS](null, K._class, a));
+    .forEach((a, i) => lines[i][K.setAttributeNS](null, K.class, a));
   return lines;
 };
 

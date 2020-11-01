@@ -1,5 +1,6 @@
-import * as K from "../../keys";
-import * as SVG from "../../../include/svg";
+import K from "../../keys";
+// import SVG from "../../../include/svg";
+import Libraries from "../../environment/libraries";
 import { boundaries_polygon } from "./boundaries";
 import { vertices_circle } from "./vertices";
 import { edges_path } from "./edges";
@@ -30,11 +31,11 @@ const render_components = (graph, options = {}) => {
   return [K.boundaries, K.edges, K.faces, K.vertices]
   .filter(key => options[key] === true)
   .map(key => {
-    const group = SVG.g();
-    group[K.setAttributeNS](null, K._class, key);
+    const group = Libraries.SVG.g();
+    group[K.setAttributeNS](null, K.class, key);
     draw_func[key](graph, options)  // vertices is the only one that uses "options"
       .forEach(a => group[K.appendChild](a));
-    Style[key](group, options.attributes[key]);
+    Style(group, options, key);
     return group;
   })
   .filter(group => group.childNodes.length > 0);

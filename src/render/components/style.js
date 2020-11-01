@@ -1,47 +1,59 @@
-import * as K from "../../keys";
+import K from "../../keys";
 
 // in each of these style functions, options has already been shortcut to the
 // specific geometry entry of the global options object, like:
 // "options" referrs to "options.attributes.edges" or "options.attributes.faces"
 
-const face_classes = [K.front, K.back];
-const edge_classes = [K.unassigned, K.mark, K.valley, K.mountain, K.boundary];
+const component_classes = {
+  vertices: [],
+  edges: [K.unassigned, K.mark, K.valley, K.mountain, K.boundary],
+  faces: [K.front, K.back],
+  boundaries: [],
+};
 
-// options object doubles as "attribute" and "className" at the top level
-const style_component = (group, opts, classes) => {
+/**
+ * @param {<g>} svg group element containing the children
+ * @param {object} options object
+ * @param {string} component name: "vertices", "edges", "faces", etc..
+ */
+const style_component = (group, { attributes }, component) => {
+  // console.log("child nodes array", Array.from(group.childNodes).forEach);
+  const classes = component_classes[component] || [];
+  // element specific (<circle>, <polygon>, etc..)
+  Array.from(group.childNodes)
+    .filter(child => attributes[child.nodeName])
+    .forEach(child => Object.keys(attributes[child.nodeName])
+      .forEach(attr => child[K.setAttributeNS](null, attr, attributes[child.nodeName][attr])));
   // filter out className specific, attributes can be applied directly.
-  Object.keys(opts)
+  Object.keys(attributes[component])
     .filter(key => !classes.includes(key))
-    .forEach(key => group[K.setAttributeNS](null, key, opts[key]));
+    .forEach(key => group[K.setAttributeNS](null, key, attributes[component][key]));
   // class specific needs to visit each element individually, check its classes.
+  if (classes.length === 0) { return; }  // done if there are no classes (vertices)
   Array.from(group.childNodes)
     // for each element, for each class, apply attribute if class exists on element
-    .forEach(child => Object.keys(opts[child.getAttribute(K._class)] || {})
-      .forEach(key => child[K.setAttributeNS](null, key, opts[child.getAttribute(K._class)][key])));
+    .forEach(child => Object.keys(attributes[component][child.getAttribute(K.class)] || {})
+      .forEach(key => child[K.setAttributeNS](null, key, attributes[component][child.getAttribute(K.class)][key])));
 };
 
-const style_faces = (group, opts) => style_component(group, opts, face_classes);
+export default style_component;
 
-const style_edges = (group, opts) => style_component(group, opts, edge_classes);
+// const style_faces = (group, opts) => style_component(group, opts, "faces");
+// const style_edges = (group, opts) => style_component(group, opts, "edges");
+// const style_vertices = (group, opts) => style_component(group, opts, "vertices");
+// const style_boundaries = (group, opts) => style_component(group, opts, "boundaries");
+// const style_boundaries = (group, opts) => {};
 
-const style_vertices = (group, opts) => {
-  Object.keys(opts)
-    .filter(key => key !== "r")
-    .forEach(key => group[K.setAttributeNS](null, key, opts[key]));
-  Array.from(group.childNodes)
-    .forEach(child => child[K.setAttributeNS](null, "r", opts.r));
-};
+// const style_boundaries = (group, opts) => {
+//   Object.keys(opts)
+//     .forEach(key => group[K.setAttributeNS](null, key, opts[key]));
+// };
 
-const style_boundaries = (group, opts) => {
-  Object.keys(opts)
-    .forEach(key => group[K.setAttributeNS](null, key, opts[key]));
-};
+// const style_func = {
+//   vertices: style_vertices,
+//   edges: style_edges,
+//   faces: style_faces,
+//   boundaries: style_boundaries,
+// };
 
-const style_func = {
-  vertices: style_vertices,
-  edges: style_edges,
-  faces: style_faces,
-  boundaries: style_boundaries,
-};
-
-export default style_func;
+// export default style_func;

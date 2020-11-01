@@ -5,49 +5,57 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.FoldToSvg = factory());
 }(this, (function () { 'use strict';
 
-  const coords = "coords";
-  const vertices = "vertices";
-  const edges = "edges";
-  const faces = "faces";
-  const boundaries = "boundaries";
-  const frame = "frame";
-  const file = "file";
-  const vertices_coords = `${vertices}_${coords}`;
-  const edges_vertices = `${edges}_${vertices}`;
-  const faces_vertices = `${faces}_${vertices}`;
-  const faces_edges = `${faces}_${edges}`;
-  const edges_assignment = `${edges}_assignment`;
-  const faces_re_coloring = `${faces}_re:coloring`;
-  const faces_re_matrix = `${faces}_re:matrix`;
-  const faces_re_layer = `${faces}_re:layer`;
-  const frame_classes = `${frame}_classes`;
-  const file_classes = `${file}_classes`;
-  const boundary = "boundary";
-  const mountain = "mountain";
-  const valley = "valley";
-  const mark = "mark";
-  const unassigned = "unassigned";
-  const creasePattern = "creasePattern";
-  const front = "front";
-  const back = "back";
-  const svg = "svg";
-  const _class = "class";
-  const index = "index";
-  const object = "object";
-  const string = "string";
-  const _function = "function";
-  const _undefined = "undefined";
-  const black = "black";
-  const white = "white";
-  const lightgray = "lightgray";
-  const stroke_width = "stroke-width";
-  const createElementNS = "createElementNS";
-  const setAttributeNS = "setAttributeNS";
-  const appendChild = "appendChild";
+  const keys = [
+    "coords",
+    "vertices",
+    "edges",
+    "faces",
+    "boundaries",
+    "frame",
+    "file",
+    "boundary",
+    "mountain",
+    "valley",
+    "mark",
+    "unassigned",
+    "creasePattern",
+    "front",
+    "back",
+    "svg",
+    "class",
+    "index",
+    "object",
+    "string",
+    "number",
+    "function",
+    "undefined",
+    "black",
+    "white",
+    "lightgray",
+    "stroke-width",
+    "createElementNS",
+    "setAttributeNS",
+    "appendChild",
+    "vertices_coords",
+    "edges_vertices",
+    "faces_vertices",
+    "faces_edges",
+    "edges_assignment",
+    "faces_re_coloring",
+    "faces_re_matrix",
+    "faces_re_layer",
+    "frame_parent",
+    "frame_inherit",
+    "frame_classes",
+    "file_frames",
+    "file_classes",
+  ];
+  const Keys = {};
+  keys.forEach(key => Keys[key] = key);
 
-  const isBrowser = typeof window !== _undefined
-    && typeof window.document !== _undefined;
-  const isNode = typeof process !== _undefined
+  const isBrowser = typeof window !== Keys.undefined
+    && typeof window.document !== Keys.undefined;
+  const isNode = typeof process !== Keys.undefined
     && process.versions != null
     && process.versions.node != null;
 
@@ -65,73 +73,122 @@
     return w;
   }());
 
-  const svgNS = "http://www.w3.org/2000/svg";
-  const svg$1 = function () {
-    const svgImage = win.document[createElementNS](svgNS, "svg");
-    svgImage.setAttribute("version", "1.1");
-    svgImage.setAttribute("xmlns", svgNS);
-    return svgImage;
-  };
+  function vkXML (text, step) {
+    const ar = text.replace(/>\s{0,}</g, "><")
+      .replace(/</g, "~::~<")
+      .replace(/\s*xmlns\:/g, "~::~xmlns:")
+      .split("~::~");
+    const len = ar.length;
+    let inComment = false;
+    let deep = 0;
+    let str = "";
+    const space = (step != null && typeof step === "string" ? step : "\t");
+    const shift = ["\n"];
+    for (let si = 0; si < 100; si += 1) {
+      shift.push(shift[si] + space);
+    }
+    for (let ix = 0; ix < len; ix += 1) {
+      if (ar[ix].search(/<!/) > -1) {
+        str += shift[deep] + ar[ix];
+        inComment = true;
+        if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1
+          || ar[ix].search(/!DOCTYPE/) > -1) {
+          inComment = false;
+        }
+      } else if (ar[ix].search(/-->/) > -1 || ar[ix].search(/\]>/) > -1) {
+        str += ar[ix];
+        inComment = false;
+      } else if (/^<\w/.exec(ar[ix - 1]) && /^<\/\w/.exec(ar[ix])
+        && /^<[\w:\-\.\,]+/.exec(ar[ix - 1])
+        == /^<\/[\w:\-\.\,]+/.exec(ar[ix])[0].replace("/", "")) {
+        str += ar[ix];
+        if (!inComment) { deep -= 1; }
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) === -1
+        && ar[ix].search(/\/>/) === -1) {
+        str = !inComment ? str += shift[deep++] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\w/) > -1 && ar[ix].search(/<\//) > -1) {
+        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\//) > -1) {
+        str = !inComment ? str += shift[--deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/\/>/) > -1) {
+        str = !inComment ? str += shift[deep] + ar[ix] : str += ar[ix];
+      } else if (ar[ix].search(/<\?/) > -1) {
+        str += shift[deep] + ar[ix];
+      } else if (ar[ix].search(/xmlns\:/) > -1 || ar[ix].search(/xmlns\=/) > -1) {
+        str += shift[deep] + ar[ix];
+      } else {
+        str += ar[ix];
+      }
+    }
+    return (str[0] === "\n") ? str.slice(1) : str;
+  }
+
+  const NS = "http://www.w3.org/2000/svg";
   const g = function (parent) {
-    const g = win.document[createElementNS](svgNS, "g");
-    if (parent) { parent[appendChild](g); }
+    const g = win.document[Keys.createElementNS](NS, "g");
+    if (parent) { parent[Keys.appendChild](g); }
     return g;
   };
   const defs = function (parent) {
-    const defs = win.document[createElementNS](svgNS, "defs");
-    if (parent) { parent[appendChild](defs); }
+    const defs = win.document[Keys.createElementNS](NS, "defs");
+    if (parent) { parent[Keys.appendChild](defs); }
     return defs;
   };
   const style = function (parent) {
-    const s = win.document[createElementNS](svgNS, "style");
-    s[setAttributeNS](null, "type", "text/css");
-    if (parent) { parent[appendChild](s); }
+    const s = win.document[Keys.createElementNS](NS, "style");
+    s[Keys.setAttributeNS](null, "type", "text/css");
+    if (parent) { parent[Keys.appendChild](s); }
     return s;
   };
-  const makeViewBox = function (x, y, width, height, padding = 0) {
-    const scale = 1.0;
-    const d = (width / scale) - width;
-    const X = (x - d) - padding;
-    const Y = (y - d) - padding;
-    const W = (width + d * 2) + padding * 2;
-    const H = (height + d * 2) + padding * 2;
-    return [X, Y, W, H].join(" ");
-  };
   const line = function (x1, y1, x2, y2) {
-    const shape = win.document[createElementNS](svgNS, "line");
-    shape[setAttributeNS](null, "x1", x1);
-    shape[setAttributeNS](null, "y1", y1);
-    shape[setAttributeNS](null, "x2", x2);
-    shape[setAttributeNS](null, "y2", y2);
+    const shape = win.document[Keys.createElementNS](NS, "line");
+    shape[Keys.setAttributeNS](null, "x1", x1);
+    shape[Keys.setAttributeNS](null, "y1", y1);
+    shape[Keys.setAttributeNS](null, "x2", x2);
+    shape[Keys.setAttributeNS](null, "y2", y2);
     return shape;
   };
   const circle = function (x, y, radius) {
-    const shape = win.document[createElementNS](svgNS, "circle");
-    shape[setAttributeNS](null, "cx", x);
-    shape[setAttributeNS](null, "cy", y);
-    shape[setAttributeNS](null, "r", radius);
+    const shape = win.document[Keys.createElementNS](NS, "circle");
+    shape[Keys.setAttributeNS](null, "cx", x);
+    shape[Keys.setAttributeNS](null, "cy", y);
+    shape[Keys.setAttributeNS](null, "r", radius);
     return shape;
   };
   const polygon = function (pointsArray) {
-    const shape = win.document[createElementNS](svgNS, "polygon");
+    const shape = win.document[Keys.createElementNS](NS, "polygon");
     const pointsString = pointsArray.map(p => `${p[0]},${p[1]}`).join(" ");
-    shape[setAttributeNS](null, "points", pointsString);
+    shape[Keys.setAttributeNS](null, "points", pointsString);
     return shape;
   };
   const path = function (d) {
-    const p = win.document[createElementNS](svgNS, "path");
-    p[setAttributeNS](null, "d", d);
+    const p = win.document[Keys.createElementNS](NS, "path");
+    p[Keys.setAttributeNS](null, "d", d);
     return p;
+  };
+  const SVG = {
+    NS,
+    g,
+    defs,
+    style,
+    line,
+    circle,
+    polygon,
+    path,
+  };
+
+  const libraries = {
+    SVG,
   };
 
   const vertices_circle = function (graph, options) {
-    if (vertices_coords in graph === false) {
+    if (Keys.vertices_coords in graph === false) {
       return [];
     }
     const radius = options && options.radius ? options.radius : 0.01;
-    const svg_vertices = graph[vertices_coords]
-      .map(v => circle(v[0], v[1], radius));
-    svg_vertices.forEach((c, i) => c[setAttributeNS](null, index, i));
+    const svg_vertices = graph[Keys.vertices_coords]
+      .map(v => libraries.SVG.circle(v[0], v[1], radius));
+    svg_vertices.forEach((c, i) => c[Keys.setAttributeNS](null, Keys.index, i));
     return svg_vertices;
   };
 
@@ -228,14 +285,14 @@
   };
 
   const bounding_rect = function (graph) {
-    if (graph[vertices_coords] == null
-      || graph[vertices_coords].length <= 0) {
+    if (graph[Keys.vertices_coords] == null
+      || graph[Keys.vertices_coords].length <= 0) {
       return [0, 0, 0, 0];
     }
-    const dimension = graph[vertices_coords][0].length;
+    const dimension = graph[Keys.vertices_coords][0].length;
     const min = Array(dimension).fill(Infinity);
     const max = Array(dimension).fill(-Infinity);
-    graph[vertices_coords].forEach(v => v.forEach((n, i) => {
+    graph[Keys.vertices_coords].forEach(v => v.forEach((n, i) => {
       if (n < min[i]) { min[i] = n; }
       if (n > max[i]) { max[i] = n; }
     }));
@@ -244,8 +301,8 @@
       : [min[0], min[1], max[0] - min[0], max[1] - min[1]]);
   };
   const get_boundary = function (graph) {
-    if (graph[edges_assignment] == null) { return { vertices: [], edges: [] }; }
-    const edges_vertices_b = graph[edges_assignment]
+    if (graph[Keys.edges_assignment] == null) { return { vertices: [], edges: [] }; }
+    const edges_vertices_b = graph[Keys.edges_assignment]
       .map(a => a === "B" || a === "b");
     const vertices_edges = make_vertices_edges(graph);
     const edge_walk = [];
@@ -259,18 +316,18 @@
     }
     edges_vertices_b[edgeIndex] = false;
     edge_walk.push(edgeIndex);
-    vertex_walk.push(graph[edges_vertices][edgeIndex][0]);
-    let nextVertex = graph[edges_vertices][edgeIndex][1];
+    vertex_walk.push(graph[Keys.edges_vertices][edgeIndex][0]);
+    let nextVertex = graph[Keys.edges_vertices][edgeIndex][1];
     while (vertex_walk[0] !== nextVertex) {
       vertex_walk.push(nextVertex);
       edgeIndex = vertices_edges[nextVertex]
         .filter(v => edges_vertices_b[v])
         .shift();
       if (edgeIndex === undefined) { return { vertices: [], edges: [] }; }
-      if (graph[edges_vertices][edgeIndex][0] === nextVertex) {
-        [, nextVertex] = graph[edges_vertices][edgeIndex];
+      if (graph[Keys.edges_vertices][edgeIndex][0] === nextVertex) {
+        [, nextVertex] = graph[Keys.edges_vertices][edgeIndex];
       } else {
-        [nextVertex] = graph[edges_vertices][edgeIndex];
+        [nextVertex] = graph[Keys.edges_vertices][edgeIndex];
       }
       edges_vertices_b[edgeIndex] = false;
       edge_walk.push(edgeIndex);
@@ -281,32 +338,32 @@
     };
   };
 
-  const boundaries_polygon = function (graph) {
-    if (vertices_coords in graph === false
-      || edges_vertices in graph === false
-      || edges_assignment in graph === false) {
+  const boundaries_polygon = (graph) => {
+    if (Keys.vertices_coords in graph === false
+      || Keys.edges_vertices in graph === false
+      || Keys.edges_assignment in graph === false) {
       return [];
     }
-    const boundary$1 = get_boundary(graph)
+    const boundary = get_boundary(graph)
       .vertices
-      .map(v => graph[vertices_coords][v]);
-    if (boundary$1.length === 0) { return []; }
-    const p = polygon(boundary$1);
-    p[setAttributeNS](null, _class, boundary);
+      .map(v => graph[Keys.vertices_coords][v]);
+    if (boundary.length === 0) { return []; }
+    const p = libraries.SVG.polygon(boundary);
+    p[Keys.setAttributeNS](null, Keys.class, Keys.boundary);
     return [p];
   };
 
   const edges_assignment_names = {
-    B: boundary,
-    b: boundary,
-    M: mountain,
-    m: mountain,
-    V: valley,
-    v: valley,
-    F: mark,
-    f: mark,
-    U: unassigned,
-    u: unassigned
+    B: Keys.boundary,
+    b: Keys.boundary,
+    M: Keys.mountain,
+    m: Keys.mountain,
+    V: Keys.valley,
+    v: Keys.valley,
+    F: Keys.mark,
+    f: Keys.mark,
+    U: Keys.unassigned,
+    u: Keys.unassigned
   };
   const edges_assignment_to_lowercase = {
     B: "b",
@@ -328,15 +385,15 @@
   };
   const edges_indices_classes = function (graph) {
     const assignment_indices = { u:[], f:[], v:[], m:[], b:[] };
-    graph[edges_assignment].map(a => edges_assignment_to_lowercase[a])
+    graph[Keys.edges_assignment].map(a => edges_assignment_to_lowercase[a])
       .forEach((a, i) => assignment_indices[a].push(i));
     return assignment_indices;
   };
   const make_edges_assignment_names = function (graph) {
-    return (graph[edges_vertices] == null || graph[edges_assignment] == null
-      || graph[edges_vertices].length !== graph[edges_assignment].length
+    return (graph[Keys.edges_vertices] == null || graph[Keys.edges_assignment] == null
+      || graph[Keys.edges_vertices].length !== graph[Keys.edges_assignment].length
       ? []
-      : graph[edges_assignment].map(a => edges_assignment_names[a]));
+      : graph[Keys.edges_assignment].map(a => edges_assignment_names[a]));
   };
   const segment_to_path = function (s) {
     return `M${s[0][0]} ${s[0][1]}L${s[1][0]} ${s[1][1]}`;
@@ -346,9 +403,9 @@
     return path_data === "" ? undefined : path_data;
   };
   const edges_by_assignment_paths_data = function (graph) {
-    if (graph[edges_vertices] == null
-      || graph[vertices_coords] == null
-      || graph[edges_assignment] == null) {
+    if (graph[Keys.edges_vertices] == null
+      || graph[Keys.vertices_coords] == null
+      || graph[Keys.edges_assignment] == null) {
       return [];
     }
     const segments = edges_coords(graph);
@@ -365,22 +422,22 @@
     return result;
   };
   const edges_path = function (graph) {
-    if (graph[edges_assignment] == null) {
+    if (graph[Keys.edges_assignment] == null) {
       const d = edges_path_data(graph);
-      return d === undefined ? [] : [path(d)];
+      return d === undefined ? [] : [libraries.SVG.path(d)];
     }
     const ds = edges_by_assignment_paths_data(graph);
     return Object.keys(ds).map(assignment => {
-      const p = path(ds[assignment]);
-      p[setAttributeNS](null, _class, edges_assignment_names[assignment]);
+      const p = libraries.SVG.path(ds[assignment]);
+      p[Keys.setAttributeNS](null, Keys.class, edges_assignment_names[assignment]);
       return p;
     });
   };
   const edges_line = function (graph) {
-    const lines = edges_coords(graph).map(e => line(e[0][0], e[0][1], e[1][0], e[1][1]));
-    lines.forEach((l, i) => l[setAttributeNS](null, index, i));
+    const lines = edges_coords(graph).map(e => libraries.SVG.line(e[0][0], e[0][1], e[1][0], e[1][1]));
+    lines.forEach((l, i) => l[Keys.setAttributeNS](null, Keys.index, i));
     make_edges_assignment_names(graph)
-      .forEach((a, i) => lines[i][setAttributeNS](null, _class, a));
+      .forEach((a, i) => lines[i][Keys.setAttributeNS](null, Keys.class, a));
     return lines;
   };
 
@@ -390,54 +447,54 @@
       .map(el => el.i);
   };
   const make_faces_sidedness = function (graph) {
-    let coloring = graph[faces_re_coloring];
+    let coloring = graph[Keys.faces_re_coloring];
     if (coloring == null) {
-      coloring = (faces_re_matrix in graph)
-        ? make_faces_coloring_from_faces_matrix(graph[faces_re_matrix])
+      coloring = (Keys.faces_re_matrix in graph)
+        ? make_faces_coloring_from_faces_matrix(graph[Keys.faces_re_matrix])
         : make_faces_coloring(graph, 0);
     }
-    return coloring.map(c => (c ? front : back));
+    return coloring.map(c => (c ? Keys.front : Keys.back));
   };
   const finalize_faces = function (graph, svg_faces) {
-    const isFoldedForm = typeof graph.frame_classes === object
+    const isFoldedForm = typeof graph.frame_classes === Keys.object
       && graph.frame_classes !== null
-      && !(graph.frame_classes.includes(creasePattern));
-    const orderIsCertain = graph[faces_re_layer] != null
-      && graph[faces_re_layer].length === graph[faces_vertices].length;
+      && !(graph.frame_classes.includes(Keys.creasePattern));
+    const orderIsCertain = graph[Keys.faces_re_layer] != null
+      && graph[Keys.faces_re_layer].length === graph[Keys.faces_vertices].length;
     if (orderIsCertain && isFoldedForm) {
       make_faces_sidedness(graph)
-        .forEach((side, i) => svg_faces[i][setAttributeNS](null, _class, side));
+        .forEach((side, i) => svg_faces[i][Keys.setAttributeNS](null, Keys.class, side));
     }
     return (orderIsCertain
-      ? faces_sorted_by_layer(graph[faces_re_layer]).map(i => svg_faces[i])
+      ? faces_sorted_by_layer(graph[Keys.faces_re_layer]).map(i => svg_faces[i])
       : svg_faces);
   };
   const faces_vertices_polygon = function (graph) {
-    if (faces_vertices in graph === false
-      || vertices_coords in graph === false) {
+    if (Keys.faces_vertices in graph === false
+      || Keys.vertices_coords in graph === false) {
       return [];
     }
-    const svg_faces = graph[faces_vertices]
-      .map(fv => fv.map(v => graph[vertices_coords][v]))
-      .map(face => polygon(face));
-    svg_faces.forEach((face, i) => face[setAttributeNS](null, index, i));
+    const svg_faces = graph[Keys.faces_vertices]
+      .map(fv => fv.map(v => graph[Keys.vertices_coords][v]))
+      .map(face => libraries.SVG.polygon(face));
+    svg_faces.forEach((face, i) => face[Keys.setAttributeNS](null, Keys.index, i));
     return finalize_faces(graph, svg_faces);
   };
   const faces_edges_polygon = function (graph) {
-    if (faces_edges in graph === false
-      || edges_vertices in graph === false
-      || vertices_coords in graph === false) {
+    if (Keys.faces_edges in graph === false
+      || Keys.edges_vertices in graph === false
+      || Keys.vertices_coords in graph === false) {
       return [];
     }
-    const svg_faces = graph[faces_edges]
+    const svg_faces = graph[Keys.faces_edges]
       .map(face_edges => face_edges
-        .map(edge => graph[edges_vertices][edge])
+        .map(edge => graph[Keys.edges_vertices][edge])
         .map((vi, i, arr) => {
           const next = arr[(i + 1) % arr.length];
           return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
-        }).map(v => graph[vertices_coords][v]))
-      .map(face => polygon(face));
-    svg_faces.forEach((face, i) => face[setAttributeNS](null, index, i));
+        }).map(v => graph[Keys.vertices_coords][v]))
+      .map(face => libraries.SVG.polygon(face));
+    svg_faces.forEach((face, i) => face[Keys.setAttributeNS](null, Keys.index, i));
     return finalize_faces(graph, svg_faces);
   };
 
@@ -447,21 +504,38 @@
       return input;
     }
     Object.getOwnPropertyNames(input).filter(prop => input[prop] !== null
-      && (typeof input[prop] === object || typeof input[prop] === _function)
+      && (typeof input[prop] === Keys.object || typeof input[prop] === Keys.function)
       && !Object.isFrozen(input[prop]))
       .forEach(prop => recursive_freeze(input[prop]));
     return input;
   };
   const recursive_assign = (target, source) => {
     Object.keys(source).forEach((key) => {
-      if (typeof source[key] === object && source[key] !== null) {
+      if (typeof source[key] === Keys.object && source[key] !== null) {
         if (!(key in target)) { target[key] = {}; }
         recursive_assign(target[key], source[key]);
-      } else if (typeof target === object && !(key in target)) {
+      } else if (typeof target === Keys.object && !(key in target)) {
         target[key] = source[key];
       }
     });
     return target;
+  };
+  const get_object = (input) => {
+    if (input == null) {
+      return {};
+    }
+    if (typeof input === Keys.object && input !== null) {
+      return input;
+    }
+    if (typeof input === Keys.string || input instanceof String) {
+      try {
+        const obj = JSON.parse(input);
+        return obj;
+      } catch (error) {
+        return {};
+      }
+    }
+    return {};
   };
 
   const linker = function (parent) {
@@ -470,8 +544,8 @@
   const none = "none";
   const five_hundred_px = "500px";
   var Options = (vmin = 1) => recursive_freeze({
-    input: string,
-    output: string,
+    input: Keys.string,
+    output: Keys.string,
     padding: null,
     file_frame: null,
     stylesheet: null,
@@ -484,30 +558,32 @@
       svg: {
         width: five_hundred_px,
         height: five_hundred_px,
-        stroke: black,
+        stroke: Keys.black,
         fill: none,
         "stroke-linejoin": "bevel",
         "stroke-width": vmin / 200,
       },
+      circle: {
+        r: vmin / 200,
+      },
       boundaries: {
-        fill: white,
+        fill: Keys.white,
       },
       faces: {
         stroke: none,
-        front: { stroke: black, fill: lightgray },
-        back: { stroke: black, fill: white },
+        front: { stroke: Keys.black, fill: Keys.lightgray },
+        back: { stroke: Keys.black, fill: Keys.white },
       },
       edges: {
         boundary: {},
         mountain: { stroke: "red" },
         valley: { stroke: "blue" },
-        mark: { stroke: lightgray },
-        unassigned: { stroke: lightgray },
+        mark: { stroke: Keys.lightgray },
+        unassigned: { stroke: Keys.lightgray },
       },
       vertices: {
         stroke: none,
-        fill: black,
-        r: vmin / 200
+        fill: Keys.black,
       }
     }
   });
@@ -525,37 +601,28 @@
     return options;
   };
 
-  const face_classes = [front, back];
-  const edge_classes = [unassigned, mark, valley, mountain, boundary];
-  const style_component = (group, opts, classes) => {
-    Object.keys(opts)
+  const component_classes = {
+    vertices: [],
+    edges: [Keys.unassigned, Keys.mark, Keys.valley, Keys.mountain, Keys.boundary],
+    faces: [Keys.front, Keys.back],
+    boundaries: [],
+  };
+  const style_component = (group, { attributes }, component) => {
+    const classes = component_classes[component] || [];
+    Array.from(group.childNodes)
+      .filter(child => attributes[child.nodeName])
+      .forEach(child => Object.keys(attributes[child.nodeName])
+        .forEach(attr => child[Keys.setAttributeNS](null, attr, attributes[child.nodeName][attr])));
+    Object.keys(attributes[component])
       .filter(key => !classes.includes(key))
-      .forEach(key => group[setAttributeNS](null, key, opts[key]));
+      .forEach(key => group[Keys.setAttributeNS](null, key, attributes[component][key]));
+    if (classes.length === 0) { return; }
     Array.from(group.childNodes)
-      .forEach(child => Object.keys(opts[child.getAttribute(_class)] || {})
-        .forEach(key => child[setAttributeNS](null, key, opts[child.getAttribute(_class)][key])));
-  };
-  const style_faces = (group, opts) => style_component(group, opts, face_classes);
-  const style_edges = (group, opts) => style_component(group, opts, edge_classes);
-  const style_vertices = (group, opts) => {
-    Object.keys(opts)
-      .filter(key => key !== "r")
-      .forEach(key => group[setAttributeNS](null, key, opts[key]));
-    Array.from(group.childNodes)
-      .forEach(child => child[setAttributeNS](null, "r", opts.r));
-  };
-  const style_boundaries = (group, opts) => {
-    Object.keys(opts)
-      .forEach(key => group[setAttributeNS](null, key, opts[key]));
-  };
-  const style_func = {
-    vertices: style_vertices,
-    edges: style_edges,
-    faces: style_faces,
-    boundaries: style_boundaries,
+      .forEach(child => Object.keys(attributes[component][child.getAttribute(Keys.class)] || {})
+        .forEach(key => child[Keys.setAttributeNS](null, key, attributes[component][child.getAttribute(Keys.class)][key])));
   };
 
-  const faces_draw_function = graph => (graph[faces_vertices] != null
+  const faces_draw_function = graph => (graph[Keys.faces_vertices] != null
     ? faces_vertices_polygon(graph)
     : faces_edges_polygon(graph));
   const draw_func = {
@@ -568,14 +635,14 @@
     if (!options.attributes) {
       options.attributes = {};
     }
-    return [boundaries, edges, faces, vertices]
+    return [Keys.boundaries, Keys.edges, Keys.faces, Keys.vertices]
     .filter(key => options[key] === true)
     .map(key => {
-      const group = g();
-      group[setAttributeNS](null, _class, key);
+      const group = libraries.SVG.g();
+      group[Keys.setAttributeNS](null, Keys.class, key);
       draw_func[key](graph, options)
-        .forEach(a => group[appendChild](a));
-      style_func[key](group, options.attributes[key]);
+        .forEach(a => group[Keys.appendChild](a));
+      style_component(group, options, key);
       return group;
     })
     .filter(group => group.childNodes.length > 0);
@@ -585,7 +652,7 @@
   const shadow_defaults = Object.freeze({
     blur: 0.005,
     opacity: 0.3,
-    color: black,
+    color: Keys.black,
   });
   const result = "result";
   const _in = "in";
@@ -596,78 +663,88 @@
   const two_hundred = "200%";
   const shadowFilter = function (options = shadow_defaults) {
     const id_name = "shadow";
-    if (typeof options !== object || options === null) { options = {}; }
+    if (typeof options !== Keys.object || options === null) { options = {}; }
     Object.keys(shadow_defaults)
       .filter(key => !(key in options))
       .forEach((key) => { options[key] = shadow_defaults[key]; });
-    const filter = document[createElementNS](svgNS, "filter");
-    filter[setAttributeNS](null, "width", two_hundred);
-    filter[setAttributeNS](null, "height", two_hundred);
-    filter[setAttributeNS](null, "id", id_name);
-    const gaussian = document[createElementNS](svgNS, "feGaussianBlur");
-    gaussian[setAttributeNS](null, _in, "SourceAlpha");
-    gaussian[setAttributeNS](null, "stdDeviation", options.blur);
-    gaussian[setAttributeNS](null, result, blur);
-    const offset = document[createElementNS](svgNS, "feOffset");
-    offset[setAttributeNS](null, _in, blur);
-    offset[setAttributeNS](null, result, offsetBlur);
-    const flood = document[createElementNS](svgNS, "feFlood");
-    flood[setAttributeNS](null, "flood-color", options.color);
-    flood[setAttributeNS](null, "flood-opacity", options.opacity);
-    flood[setAttributeNS](null, result, offsetColor);
-    const composite = document[createElementNS](svgNS, "feComposite");
-    composite[setAttributeNS](null, _in, offsetColor);
-    composite[setAttributeNS](null, "in2", offsetBlur);
-    composite[setAttributeNS](null, "operator", _in);
-    composite[setAttributeNS](null, result, offsetBlur);
-    const merge = document[createElementNS](svgNS, "feMerge");
-    const mergeNode1 = document[createElementNS](svgNS, feMergeNode);
-    const mergeNode2 = document[createElementNS](svgNS, feMergeNode);
-    mergeNode2[setAttributeNS](null, _in, "SourceGraphic");
-    merge[appendChild](mergeNode1);
-    merge[appendChild](mergeNode2);
-    filter[appendChild](gaussian);
-    filter[appendChild](offset);
-    filter[appendChild](flood);
-    filter[appendChild](composite);
-    filter[appendChild](merge);
+    const filter = document[Keys.createElementNS](libraries.SVG.NS, "filter");
+    filter[Keys.setAttributeNS](null, "width", two_hundred);
+    filter[Keys.setAttributeNS](null, "height", two_hundred);
+    filter[Keys.setAttributeNS](null, "id", id_name);
+    const gaussian = document[Keys.createElementNS](libraries.SVG.NS, "feGaussianBlur");
+    gaussian[Keys.setAttributeNS](null, _in, "SourceAlpha");
+    gaussian[Keys.setAttributeNS](null, "stdDeviation", options.blur);
+    gaussian[Keys.setAttributeNS](null, result, blur);
+    const offset = document[Keys.createElementNS](libraries.SVG.NS, "feOffset");
+    offset[Keys.setAttributeNS](null, _in, blur);
+    offset[Keys.setAttributeNS](null, result, offsetBlur);
+    const flood = document[Keys.createElementNS](libraries.SVG.NS, "feFlood");
+    flood[Keys.setAttributeNS](null, "flood-color", options.color);
+    flood[Keys.setAttributeNS](null, "flood-opacity", options.opacity);
+    flood[Keys.setAttributeNS](null, result, offsetColor);
+    const composite = document[Keys.createElementNS](libraries.SVG.NS, "feComposite");
+    composite[Keys.setAttributeNS](null, _in, offsetColor);
+    composite[Keys.setAttributeNS](null, "in2", offsetBlur);
+    composite[Keys.setAttributeNS](null, "operator", _in);
+    composite[Keys.setAttributeNS](null, result, offsetBlur);
+    const merge = document[Keys.createElementNS](libraries.SVG.NS, "feMerge");
+    const mergeNode1 = document[Keys.createElementNS](libraries.SVG.NS, feMergeNode);
+    const mergeNode2 = document[Keys.createElementNS](libraries.SVG.NS, feMergeNode);
+    mergeNode2[Keys.setAttributeNS](null, _in, "SourceGraphic");
+    merge[Keys.appendChild](mergeNode1);
+    merge[Keys.appendChild](mergeNode2);
+    filter[Keys.appendChild](gaussian);
+    filter[Keys.appendChild](offset);
+    filter[Keys.appendChild](flood);
+    filter[Keys.appendChild](composite);
+    filter[Keys.appendChild](merge);
     return filter;
   };
 
   const make_defs = (graph, options) => {
     const bounds = bounding_rect(graph);
     const vmin = Math.min(bounds[2], bounds[3]);
-    const defs$1 = defs();
+    const defs = libraries.SVG.defs();
     if (options.stylesheet != null) {
-      const style$1 = style(defs$1);
-      const strokeVar = options.attributes.svg[stroke_width]
-        ? options.attributes.svg[stroke_width] : vmin / 200;
+      const style = libraries.SVG.style();
+      defs[Keys.appendChild](style);
+      const strokeVar = options.attributes.svg[Keys.stroke_width]
+        ? options.attributes.svg[Keys.stroke_width] : vmin / 200;
       const cdata = (new win.DOMParser())
         .parseFromString("<xml></xml>", "application/xml")
-        .createCDATASection(`\n* { --${stroke_width}: ${strokeVar}; }\n${options.stylesheet}`);
-      style$1[appendChild](cdata);
+        .createCDATASection(`\n* { --${Keys.stroke_width}: ${strokeVar}; }\n${options.stylesheet}`);
+      style[Keys.appendChild](cdata);
     }
     if (options.shadows != null) {
-      const shadowOptions = (typeof options.shadows === object && options.shadows !== null
+      const shadowOptions = (typeof options.shadows === Keys.object && options.shadows !== null
         ? options.shadows
         : { blur: vmin / 200 });
-      defs$1[appendChild](shadowFilter(shadowOptions));
+      defs[Keys.appendChild](shadowFilter(shadowOptions));
     }
     return (options.stylesheet != null || options.shadows != null
-      ? defs$1
+      ? defs
       : undefined);
   };
 
   const graph_classes = function (graph) {
-    const file_classes$1 = (graph[file_classes] != null
-      ? graph[file_classes] : []).join(" ");
-    const frame_classes$1 = (graph[frame_classes] != null
-      ? graph[frame_classes] : []).join(" ");
-    return [file_classes$1, frame_classes$1]
+    const file_classes = (graph[Keys.file_classes] != null
+      ? graph[Keys.file_classes] : []).join(" ");
+    const frame_classes = (graph[Keys.frame_classes] != null
+      ? graph[Keys.frame_classes] : []).join(" ");
+    return [file_classes, frame_classes]
       .filter(s => s !== "")
       .join(" ");
   };
 
+  const makeViewBox = function (x, y, width, height, padding = 0) {
+    const scale = 1.0;
+    const d = (width / scale) - width;
+    const X = (x - d) - padding;
+    const Y = (y - d) - padding;
+    const W = (width + d * 2) + padding * 2;
+    const H = (height + d * 2) + padding * 2;
+    return [X, Y, W, H].join(" ");
+  };
   const make_svg_attributes = (graph, options) => {
     const bounds = bounding_rect(graph);
     const vmin = Math.min(bounds[2], bounds[3]);
@@ -676,7 +753,7 @@
     };
     const classValue = graph_classes(graph);
     if (classValue !== "") {
-      attributes[_class] = classValue;
+      attributes[Keys.class] = classValue;
     }
     Object.assign(attributes, options.attributes.svg);
     return attributes;
@@ -685,19 +762,32 @@
   const render_into_svg = (svg, graph, options) => {
     make_options(graph, options);
     const defs = make_defs(graph, options);
-    if (defs) { svg[appendChild](defs); }
+    if (defs) { svg[Keys.appendChild](defs); }
     render_components(graph, options)
-      .forEach(group => svg[appendChild](group));
+      .forEach(group => svg[Keys.appendChild](group));
     const attrs = make_svg_attributes(graph, options);
-    Object.keys(attrs).forEach(attr => svg[setAttributeNS](null, attr, attrs[attr]));
+    Object.keys(attrs).forEach(attr => svg[Keys.setAttributeNS](null, attr, attrs[attr]));
     return svg;
   };
 
-  const FoldToSvg = (graph, options = {}) => {
+  const use = (library) => {
+    if (library.NS) {
+      libraries.SVG = library;
+    }
+  };
+
+  const svg = () => {
+    const svgImage = win.document[Keys.createElementNS](libraries.SVG.NS, Keys.svg);
+    svgImage.setAttribute("version", "1.1");
+    svgImage.setAttribute("xmlns", libraries.SVG.NS);
+    return svgImage;
+  };
+  const FoldToSvg = (arg, options = {}) => {
+    const graph = get_object(arg);
     make_options(graph, options);
-    const element = render_into_svg(svg$1(), graph, options);
-    if (options.output === svg) { return element; }
-    const stringified = (new window.XMLSerializer()).serializeToString(element);
+    const element = render_into_svg(svg(), graph, options);
+    if (options.output === Keys.svg) { return element; }
+    const stringified = (new win.XMLSerializer()).serializeToString(element);
     const beautified = vkXML(stringified);
     return beautified;
   };
@@ -713,6 +803,7 @@
     render_components,
     render_into_svg,
     linker: linker.bind(FoldToSvg),
+    use,
   });
 
   return FoldToSvg;

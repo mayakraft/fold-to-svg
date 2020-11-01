@@ -5,9 +5,9 @@ import {
   make_faces_coloring_from_faces_matrix,
   make_faces_coloring,
 } from "../../graph/make";
-import * as K from "../../keys";
-
-import { polygon } from "../../../include/svg";
+import K from "../../keys";
+import Libraries from "../../environment/libraries";
+// import SVG from "../../../include/svg";
 
 // todo: include sorting with "facesOrder"
 
@@ -39,7 +39,7 @@ const finalize_faces = function (graph, svg_faces) {
   if (orderIsCertain && isFoldedForm) {
     // only if face order is known
     make_faces_sidedness(graph)
-      .forEach((side, i) => svg_faces[i][K.setAttributeNS](null, K._class, side));
+      .forEach((side, i) => svg_faces[i][K.setAttributeNS](null, K.class, side));
   }
   return (orderIsCertain
     ? faces_sorted_by_layer(graph[K.faces_re_layer]).map(i => svg_faces[i])
@@ -53,7 +53,7 @@ export const faces_vertices_polygon = function (graph) {
   }
   const svg_faces = graph[K.faces_vertices]
     .map(fv => fv.map(v => graph[K.vertices_coords][v]))
-    .map(face => polygon(face));
+    .map(face => Libraries.SVG.polygon(face));
   svg_faces.forEach((face, i) => face[K.setAttributeNS](null, K.index, i)); // `${i}`));
   return finalize_faces(graph, svg_faces);
 };
@@ -71,7 +71,7 @@ export const faces_edges_polygon = function (graph) {
         const next = arr[(i + 1) % arr.length];
         return (vi[1] === next[0] || vi[1] === next[1] ? vi[0] : vi[1]);
       }).map(v => graph[K.vertices_coords][v]))
-    .map(face => polygon(face));
+    .map(face => Libraries.SVG.polygon(face));
   svg_faces.forEach((face, i) => face[K.setAttributeNS](null, K.index, i)); // `${i}`));
   return finalize_faces(graph, svg_faces);
 };

@@ -2,8 +2,9 @@
  * fold to svg (c) Robby Kraft
  */
 import window from "../environment/window";
-import { svgNS } from "../../include/svg";
-import * as K from "../keys";
+// import SVG from "../../include/svg";
+import Libraries from "../environment/libraries";
+import K from "../keys";
 
 const { document } = window;
 
@@ -29,34 +30,34 @@ export const shadowFilter = function (options = shadow_defaults) {
     .filter(key => !(key in options))
     .forEach((key) => { options[key] = shadow_defaults[key]; });
 
-  const filter = document[K.createElementNS](svgNS, "filter");
+  const filter = document[K.createElementNS](Libraries.SVG.NS, "filter");
   filter[K.setAttributeNS](null, "width", two_hundred);
   filter[K.setAttributeNS](null, "height", two_hundred);
   filter[K.setAttributeNS](null, "id", id_name);
 
-  const gaussian = document[K.createElementNS](svgNS, "feGaussianBlur");
+  const gaussian = document[K.createElementNS](Libraries.SVG.NS, "feGaussianBlur");
   gaussian[K.setAttributeNS](null, _in, "SourceAlpha");
   gaussian[K.setAttributeNS](null, "stdDeviation", options.blur);
   gaussian[K.setAttributeNS](null, result, blur);
 
-  const offset = document[K.createElementNS](svgNS, "feOffset");
+  const offset = document[K.createElementNS](Libraries.SVG.NS, "feOffset");
   offset[K.setAttributeNS](null, _in, blur);
   offset[K.setAttributeNS](null, result, offsetBlur);
 
-  const flood = document[K.createElementNS](svgNS, "feFlood");
+  const flood = document[K.createElementNS](Libraries.SVG.NS, "feFlood");
   flood[K.setAttributeNS](null, "flood-color", options.color);
   flood[K.setAttributeNS](null, "flood-opacity", options.opacity);
   flood[K.setAttributeNS](null, result, offsetColor);
 
-  const composite = document[K.createElementNS](svgNS, "feComposite");
+  const composite = document[K.createElementNS](Libraries.SVG.NS, "feComposite");
   composite[K.setAttributeNS](null, _in, offsetColor);
   composite[K.setAttributeNS](null, "in2", offsetBlur);
   composite[K.setAttributeNS](null, "operator", _in);
   composite[K.setAttributeNS](null, result, offsetBlur);
 
-  const merge = document[K.createElementNS](svgNS, "feMerge");
-  const mergeNode1 = document[K.createElementNS](svgNS, feMergeNode);
-  const mergeNode2 = document[K.createElementNS](svgNS, feMergeNode);
+  const merge = document[K.createElementNS](Libraries.SVG.NS, "feMerge");
+  const mergeNode1 = document[K.createElementNS](Libraries.SVG.NS, feMergeNode);
+  const mergeNode2 = document[K.createElementNS](Libraries.SVG.NS, feMergeNode);
   mergeNode2[K.setAttributeNS](null, _in, "SourceGraphic");
   merge[K.appendChild](mergeNode1);
   merge[K.appendChild](mergeNode2);
@@ -70,18 +71,18 @@ export const shadowFilter = function (options = shadow_defaults) {
 };
 
 // export const shadowFilter = function (id_name = "shadow") {
-//  let defs = document.createElementNS(svgNS, "defs");
-//  let filter = document.createElementNS(svgNS, "filter");
+//  let defs = document.createElementNS(Libraries.SVG.NS, "defs");
+//  let filter = document.createElementNS(Libraries.SVG.NS, "filter");
 //  filter.setAttribute("width", "200%");
 //  filter.setAttribute("height", "200%");
 //  filter.setAttribute("id", id_name);
-//  let blur = document.createElementNS(svgNS, "feGaussianBlur");
+//  let blur = document.createElementNS(Libraries.SVG.NS, "feGaussianBlur");
 //  blur.setAttribute("result", "blurOut");
 //  blur.setAttribute("in", "SourceGraphic");
 //  blur.setAttribute("stdDeviation", 0.005);
-//  let merge = document.createElementNS(svgNS, "feMerge");
-//  let mergeNode1 = document.createElementNS(svgNS, "feMergeNode");
-//  let mergeNode2 = document.createElementNS(svgNS, "feMergeNode");
+//  let merge = document.createElementNS(Libraries.SVG.NS, "feMerge");
+//  let mergeNode1 = document.createElementNS(Libraries.SVG.NS, "feMergeNode");
+//  let mergeNode2 = document.createElementNS(Libraries.SVG.NS, "feMergeNode");
 //  mergeNode2.setAttribute("in", "SourceGraphic");
 //  defs.appendChild(filter);
 //  filter.appendChild(blur);
