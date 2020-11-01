@@ -18,7 +18,8 @@ import {
 import { get_object } from "./environment/javascript";
 import linker from "./environment/linker";
 import render_into_svg from "./render/index";
-import K from "./keys";
+import { flatten_frame } from "./graph/file_frames";
+import * as K from "./keys";
 import make_options from "./options/make_options";
 import render_components from "./render/components/index";
 import Libraries from "./environment/libraries";
@@ -32,9 +33,14 @@ const svg = () => {
 };
 
 const FoldToSvg = (arg, options = {}) => {
+  // get the input from a string or an object
   const graph = get_object(arg);
   // options
   make_options(graph, options);
+  // get the FOLD input
+  // const graph = (typeof options.file_frame === K.number
+  //   ? flatten_frame(input, options.file_frame)
+  //   : input);
   // render
   const element = render_into_svg(svg(), graph, options);
   // return
@@ -43,11 +49,6 @@ const FoldToSvg = (arg, options = {}) => {
   const beautified = vkXML(stringified);
   return beautified;
 };
-
-// // get the FOLD input
-// const graph = (typeof options.file_frame === K.number
-//   ? flatten_frame(input, options.file_frame)
-//   : input);
 
 Object.assign(FoldToSvg, {
   vertices_circle,

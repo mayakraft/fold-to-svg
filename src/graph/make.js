@@ -1,12 +1,13 @@
 /**
  * fold to svg (c) Robby Kraft
  */
+import * as K from "../keys";
 import math from "../../include/math";
 
-export const make_vertices_edges = function ({ edges_vertices }) {
-  if (!edges_vertices) { return undefined; }
+export const make_vertices_edges = function (graph) {
+  if (!graph[K.edges_vertices]) { return undefined; }
   const vertices_edges = [];
-  edges_vertices.forEach((ev, i) => ev
+  graph[K.edges_vertices].forEach((ev, i) => ev
     .forEach((v) => {
       if (vertices_edges[v] === undefined) {
         vertices_edges[v] = [];
@@ -17,15 +18,13 @@ export const make_vertices_edges = function ({ edges_vertices }) {
 };
 
 // todo: make_edges_faces c-clockwise
-export const make_edges_vertices = function ({
-  edges_vertices, faces_edges
-}) {
-  if (!edges_vertices || !faces_edges) { return undefined; }
+export const make_edges_vertices = function (graph) {
+  if (!graph[K.edges_vertices] || !graph[K.faces_edges]) { return undefined; }
   const edges_faces = Array
-    .from(Array(edges_vertices.length))
+    .from(Array(graph[K.edges_vertices].length))
     .map(() => []);
   // todo: does not arrange counter-clockwise
-  faces_edges.forEach((face, f) => {
+  graph[K.faces_edges].forEach((face, f) => {
     const hash = [];
     // use an intermediary hash to handle the case where faces visit one
     // vertex multiple times. otherwise there are redundant indices.
@@ -36,12 +35,12 @@ export const make_edges_vertices = function ({
 };
 
 // faces_faces is a set of faces edge-adjacent to a face. for every face.
-export const make_faces_faces = function ({ faces_vertices }) {
-  if (!faces_vertices) { return undefined; }
-  const nf = faces_vertices.length;
+export const make_faces_faces = function (graph) {
+  if (!graph[K.faces_vertices]) { return undefined; }
+  const nf = graph[K.faces_vertices].length;
   const faces_faces = Array.from(Array(nf)).map(() => []);
   const edgeMap = {};
-  faces_vertices.forEach((vertices_index, idx1) => {
+  graph[K.faces_vertices].forEach((vertices_index, idx1) => {
     if (vertices_index === undefined) { return; } // todo: necessary?
     const n = vertices_index.length;
     vertices_index.forEach((v1, i, vs) => {
@@ -60,29 +59,25 @@ export const make_faces_faces = function ({ faces_vertices }) {
   return faces_faces;
 };
 
-export const make_edges_edges = function ({
-  edges_vertices, vertices_edges
-}) {
-  if (!edges_vertices || !vertices_edges) { return undefined; }
-  return edges_vertices.map((ev, i) => {
+export const make_edges_edges = function (graph) {
+  if (!graph[K.edges_vertices] || !graph[K.vertices_edges]) { return undefined; }
+  return graph[K.edges_vertices].map((ev, i) => {
     const vert0 = ev[0];
     const vert1 = ev[1];
-    const side0 = vertices_edges[vert0].filter(e => e !== i);
-    const side1 = vertices_edges[vert1].filter(e => e !== i);
+    const side0 = graph[K.vertices_edges][vert0].filter(e => e !== i);
+    const side1 = graph[K.vertices_edges][vert1].filter(e => e !== i);
     return side0.concat(side1);
   });
 };
 
 // todo: make_edges_faces c-clockwise
-export const make_edges_faces = function ({
-  edges_vertices, faces_edges
-}) {
-  if (!edges_vertices || !faces_edges) { return undefined; }
+export const make_edges_faces = function (graph) {
+  if (!graph[K.edges_vertices] || !graph[K.faces_edges]) { return undefined; }
   const edges_faces = Array
-    .from(Array(edges_vertices.length))
+    .from(Array(graph[K.edges_vertices].length))
     .map(() => []);
   // todo: does not arrange counter-clockwise
-  faces_edges.forEach((face, f) => {
+  graph[K.faces_edges].forEach((face, f) => {
     const hash = [];
     // use an intermediary hash to handle the case where faces visit one
     // vertex multiple times. otherwise there are redundant indices.
@@ -92,10 +87,10 @@ export const make_edges_faces = function ({
   return edges_faces;
 };
 
-export const make_edges_length = function ({ vertices_coords, edges_vertices }) {
-  if (!vertices_coords || !edges_vertices) { return undefined; }
-  return edges_vertices
-    .map(ev => ev.map(v => vertices_coords[v]))
+export const make_edges_length = function (graph) {
+  if (!graph[K.vertices_coords] || !graph[K.edges_vertices]) { return undefined; }
+  return graph[K.edges_vertices]
+    .map(ev => ev.map(v => graph[K.vertices_coords][v]))
     .map(edge => math.core.distance(...edge));
 };
 
@@ -106,9 +101,9 @@ const assignment_angles = {
   v: 180
 };
 
-export const make_edges_foldAngle = function ({ edges_assignment }) {
-  if (!edges_assignment) { return undefined; }
-  return edges_assignment.map(a => assignment_angles[a] || 0);
+export const make_edges_foldAngle = function (graph) {
+  if (!graph[K.edges_assignment]) { return undefined; }
+  return graph[K.edges_assignment].map(a => assignment_angles[a] || 0);
 };
 
 /**
@@ -116,10 +111,10 @@ export const make_edges_foldAngle = function ({ edges_assignment }) {
  * that compose an edge "6 11" always sorted smallest to largest, with a space.
  * the value is the index of the edge.
  */
-export const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
-  if (!edges_vertices) { return {}; } // todo, should this return undefined?
+export const make_vertex_pair_to_edge_map = function (graph) {
+  if (!graph[K.edges_vertices]) { return {}; } // todo, should this return undefined?
   const map = {};
-  edges_vertices
+  graph[K.edges_vertices]
     .map(ev => ev.sort((a, b) => a - b).join(" "))
     .forEach((key, i) => { map[key] = i; });
   return map;
@@ -128,13 +123,11 @@ export const make_vertex_pair_to_edge_map = function ({ edges_vertices }) {
 /**
  * build vertices_faces from faces_vertices
  */
-export const make_vertices_faces = function ({
-  vertices_coords, faces_vertices
-}) {
-  if (!vertices_coords || !faces_vertices) { return undefined; }
-  const vertices_faces = Array.from(Array(vertices_coords.length))
+export const make_vertices_faces = function (graph) {
+  if (!graph[K.vertices_coords] || !graph[K.faces_vertices]) { return undefined; }
+  const vertices_faces = Array.from(Array(graph[K.vertices_coords].length))
     .map(() => []);
-  faces_vertices.forEach((face, f) => {
+  graph[K.faces_vertices].forEach((face, f) => {
     const hash = [];
     // use an intermediary hash to handle the case where faces visit one
     // vertex multiple times. otherwise there are redundant indices.

@@ -2,7 +2,7 @@
  * fold to svg (c) Robby Kraft
  */
 
-import K from "../keys";
+import * as K from "../keys";
 
 export const graph_classes = function (graph) {
   const file_classes = (graph[K.file_classes] != null

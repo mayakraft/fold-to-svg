@@ -2,26 +2,17 @@
  * fold to svg (c) Robby Kraft
  */
 import window from "../environment/window";
-import K from "../keys";
+import * as K from "../keys";
 
 const NS = "http://www.w3.org/2000/svg";
 
-const g = function (parent) {
-  const g = window.document[K.createElementNS](NS, "g");
-  if (parent) { parent[K.appendChild](g); }
-  return g;
-};
+const g = () => window.document[K.createElementNS](NS, "g");
 
-const defs = function (parent) {
-  const defs = window.document[K.createElementNS](NS, "defs");
-  if (parent) { parent[K.appendChild](defs); }
-  return defs;
-};
+const defs = () => window.document[K.createElementNS](NS, "defs");
 
-const style = function (parent) {
+const style = function () {
   const s = window.document[K.createElementNS](NS, "style");
   s[K.setAttributeNS](null, "type", "text/css");
-  if (parent) { parent[K.appendChild](s); }
   return s;
 };
 

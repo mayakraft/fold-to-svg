@@ -1,4 +1,4 @@
-import K from "../keys";
+import * as K from "../keys";
 import Libraries from "../environment/libraries";
 // import SVG from "../../include/svg";
 import window from "../environment/window";

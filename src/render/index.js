@@ -1,7 +1,7 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import K from "../keys";
+import * as K from "../keys";
 import make_options from "../options/make_options";
 import render_components from "./components/index";
 import Defs from "./defs";

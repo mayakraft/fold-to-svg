@@ -2,7 +2,7 @@
  * fold to svg (c) Robby Kraft
  */
 import { make_vertices_edges } from "./make";
-import K from "../keys";
+import * as K from "../keys";
 
 export const bounding_rect = function (graph) {
   if (graph[K.vertices_coords] == null

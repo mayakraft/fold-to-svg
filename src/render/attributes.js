@@ -1,4 +1,4 @@
-import K from "../keys";
+import * as K from "../keys";
 import { graph_classes } from "../graph/class";
 import { bounding_rect } from "../graph/boundary";
 
@@ -20,7 +20,7 @@ const make_svg_attributes = (graph, options) => {
   };
   const classValue = graph_classes(graph);
   if (classValue !== "") {
-    attributes[K.class] = classValue;
+    attributes[K._class] = classValue;
   }
   Object.assign(attributes, options.attributes.svg);
   return attributes;

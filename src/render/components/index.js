@@ -1,4 +1,4 @@
-import K from "../../keys";
+import * as K from "../../keys";
 // import SVG from "../../../include/svg";
 import Libraries from "../../environment/libraries";
 import { boundaries_polygon } from "./boundaries";
@@ -32,7 +32,7 @@ const render_components = (graph, options = {}) => {
   .filter(key => options[key] === true)
   .map(key => {
     const group = Libraries.SVG.g();
-    group[K.setAttributeNS](null, K.class, key);
+    group[K.setAttributeNS](null, K._class, key);
     draw_func[key](graph, options)  // vertices is the only one that uses "options"
       .forEach(a => group[K.appendChild](a));
     Style(group, options, key);

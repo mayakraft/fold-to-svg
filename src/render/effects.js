@@ -2,9 +2,8 @@
  * fold to svg (c) Robby Kraft
  */
 import window from "../environment/window";
-// import SVG from "../../include/svg";
 import Libraries from "../environment/libraries";
-import K from "../keys";
+import * as K from "../keys";
 
 const { document } = window;
 

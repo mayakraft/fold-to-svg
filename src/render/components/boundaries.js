@@ -4,7 +4,7 @@
 import { get_boundary } from "../../../src/graph/boundary";
 // import SVG from "../../../include/svg";
 import Libraries from "../../environment/libraries";
-import K from "../../keys";
+import * as K from "../../keys";
 
 export const boundaries_polygon = (graph) => {
   // todo this needs to be able to handle multiple boundaries
@@ -18,6 +18,6 @@ export const boundaries_polygon = (graph) => {
     .map(v => graph[K.vertices_coords][v]);
   if (boundary.length === 0) { return []; }
   const p = Libraries.SVG.polygon(boundary);
-  p[K.setAttributeNS](null, K.class, K.boundary);
+  p[K.setAttributeNS](null, K._class, K.boundary);
   return [p];
 };

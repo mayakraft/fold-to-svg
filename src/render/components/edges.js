@@ -3,7 +3,7 @@
  */
 // import SVG from "../../../include/svg";
 import Libraries from "../../environment/libraries";
-import K from "../../keys";
+import * as K from "../../keys";
 
 const edges_assignment_names = {
   B: K.boundary,
@@ -32,11 +32,11 @@ const edges_assignment_to_lowercase = {
   u: "u",
 };
 
-const edges_coords = function ({ vertices_coords, edges_vertices }) {
-  if (edges_vertices == null || vertices_coords == null) {
+const edges_coords = function (graph) {
+  if (graph[K.edges_vertices] == null || graph[K.vertices_coords] == null) {
     return [];
   }
-  return edges_vertices.map(ev => ev.map(v => vertices_coords[v]));
+  return graph[K.edges_vertices].map(ev => ev.map(v => graph[K.vertices_coords][v]));
 };
 
 /**
@@ -67,7 +67,7 @@ const edges = function (graph) {
     .map(e => Libraries.SVG.line(e[0][0], e[0][1], e[1][0], e[1][1]));
   svg_edges.forEach((edge, i) => edge[K.setAttributeNS](null, K.index, `${i}`));
   make_edges_assignment_names(graph)
-    .forEach((a, i) => svg_edges[i][K.setAttributeNS](null, K.class, a));
+    .forEach((a, i) => svg_edges[i][K.setAttributeNS](null, K._class, a));
   return svg_edges;
 };
 
@@ -118,7 +118,7 @@ export const edges_path = function (graph) {
   const ds = edges_by_assignment_paths_data(graph);
   return Object.keys(ds).map(assignment => {
     const p = Libraries.SVG.path(ds[assignment]);
-    p[K.setAttributeNS](null, K.class, edges_assignment_names[assignment]);
+    p[K.setAttributeNS](null, K._class, edges_assignment_names[assignment]);
     return p;
   });
 };
@@ -128,7 +128,7 @@ export const edges_line = function (graph) {
   // keep track of each svg's index in the 
   lines.forEach((l, i) => l[K.setAttributeNS](null, K.index, i)) // `${i}`))
   make_edges_assignment_names(graph)
-    .forEach((a, i) => lines[i][K.setAttributeNS](null, K.class, a));
+    .forEach((a, i) => lines[i][K.setAttributeNS](null, K._class, a));
   return lines;
 };
 

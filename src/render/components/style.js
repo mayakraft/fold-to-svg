@@ -1,4 +1,4 @@
-import K from "../../keys";
+import * as K from "../../keys";
 
 // in each of these style functions, options has already been shortcut to the
 // specific geometry entry of the global options object, like:
@@ -32,8 +32,8 @@ const style_component = (group, { attributes }, component) => {
   if (classes.length === 0) { return; }  // done if there are no classes (vertices)
   Array.from(group.childNodes)
     // for each element, for each class, apply attribute if class exists on element
-    .forEach(child => Object.keys(attributes[component][child.getAttribute(K.class)] || {})
-      .forEach(key => child[K.setAttributeNS](null, key, attributes[component][child.getAttribute(K.class)][key])));
+    .forEach(child => Object.keys(attributes[component][child.getAttribute(K._class)] || {})
+      .forEach(key => child[K.setAttributeNS](null, key, attributes[component][child.getAttribute(K._class)][key])));
 };
 
 export default style_component;

@@ -5,7 +5,7 @@ import {
   make_faces_coloring_from_faces_matrix,
   make_faces_coloring,
 } from "../../graph/make";
-import K from "../../keys";
+import * as K from "../../keys";
 import Libraries from "../../environment/libraries";
 // import SVG from "../../../include/svg";
 
@@ -39,7 +39,7 @@ const finalize_faces = function (graph, svg_faces) {
   if (orderIsCertain && isFoldedForm) {
     // only if face order is known
     make_faces_sidedness(graph)
-      .forEach((side, i) => svg_faces[i][K.setAttributeNS](null, K.class, side));
+      .forEach((side, i) => svg_faces[i][K.setAttributeNS](null, K._class, side));
   }
   return (orderIsCertain
     ? faces_sorted_by_layer(graph[K.faces_re_layer]).map(i => svg_faces[i])

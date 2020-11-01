@@ -1,5 +1,5 @@
 import { recursive_freeze } from "../environment/javascript";
-import K from "../keys";
+import * as K from "../keys";
 
 const none = "none";
 const five_hundred_px = "500px";
@@ -13,7 +13,7 @@ export default (vmin = 1) => recursive_freeze({
   stylesheet: null,
   shadows: null,
 
-  // show / hide. is it visible?
+  // show / hide components. the boolean value answers "is it visible?"
   boundaries: true,
   faces: true,
   edges: true,
