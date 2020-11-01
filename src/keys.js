@@ -32,6 +32,7 @@ export const creasePattern = "creasePattern";
 export const front = "front";
 export const back = "back";
 
+export const svg = "svg";
 export const _class = "class";
 export const index = "index";
 export const object = "object";

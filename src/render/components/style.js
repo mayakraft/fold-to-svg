@@ -1,4 +1,4 @@
-import * as K from "../keys";
+import * as K from "../../keys";
 
 // in each of these style functions, options has already been shortcut to the
 // specific geometry entry of the global options object, like:

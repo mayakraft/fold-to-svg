@@ -1,8 +1,8 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import { circle } from "../../include/svg";
-import * as K from "../keys";
+import { circle } from "../../../include/svg";
+import * as K from "../../keys";
 
 export const vertices_circle = function (graph, options) {
   if (K.vertices_coords in graph === false) {

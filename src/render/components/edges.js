@@ -1,8 +1,8 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import { line, path } from "../../include/svg";
-import * as K from "../keys";
+import { line, path } from "../../../include/svg";
+import * as K from "../../keys";
 
 const edges_assignment_names = {
   B: K.boundary,

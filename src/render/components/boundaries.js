@@ -1,9 +1,9 @@
 /**
  * fold to svg (c) Robby Kraft
  */
-import { get_boundary } from "../../src/graph/boundary";
-import { polygon } from "../../include/svg";
-import * as K from "../keys";
+import { get_boundary } from "../../../src/graph/boundary";
+import { polygon } from "../../../include/svg";
+import * as K from "../../keys";
 
 export const boundaries_polygon = function (graph) {
   // todo this needs to be able to handle multiple boundaries

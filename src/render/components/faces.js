@@ -4,10 +4,10 @@
 import {
   make_faces_coloring_from_faces_matrix,
   make_faces_coloring,
-} from "../graph/make";
-import * as K from "../keys";
+} from "../../graph/make";
+import * as K from "../../keys";
 
-import { polygon } from "../../include/svg";
+import { polygon } from "../../../include/svg";
 
 // todo: include sorting with "facesOrder"
 

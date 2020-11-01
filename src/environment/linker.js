@@ -21,7 +21,7 @@ const linker = function (parent) {
   const thisToSVG = function () {
     return FoldtoSVG(this, ...arguments);
   };
-  if (parent.graph) { parent.graph.prototype.svg = thisToSVG; }
+  // if (parent.graph) { parent.graph.prototype.svg = thisToSVG; }
 };
 
 export default linker;

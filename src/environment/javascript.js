@@ -69,8 +69,8 @@ export const get_object = (input) => {
       const obj = JSON.parse(input);
       return obj;
     } catch (error) {
-      throw error;
+      return {};
     }
   }
-  throw new TypeError(`input requires ${K.string} or ${K.object}`);
+  return {};
 };

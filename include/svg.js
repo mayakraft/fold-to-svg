@@ -32,15 +32,14 @@ export const style = function (parent) {
   return s;
 };
 
-export const setViewBox = function (svg, x, y, width, height, padding = 0) {
+export const makeViewBox = function (x, y, width, height, padding = 0) {
   const scale = 1.0;
   const d = (width / scale) - width;
   const X = (x - d) - padding;
   const Y = (y - d) - padding;
   const W = (width + d * 2) + padding * 2;
   const H = (height + d * 2) + padding * 2;
-  const viewBoxString = [X, Y, W, H].join(" ");
-  svg[K.setAttributeNS](null, "viewBox", viewBoxString);
+  return [X, Y, W, H].join(" ");
 };
 
 export const line = function (x1, y1, x2, y2) {
