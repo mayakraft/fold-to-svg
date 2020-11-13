@@ -5,7 +5,7 @@ import { bounding_rect } from "../graph/boundary";
 import { recursive_assign } from "../environment/javascript";
 import Options from "./options";
 
-const make_options = (graph, options = {}) => {
+const make_options = (graph = {}, options = {}) => {
   const bounds = bounding_rect(graph);   // this is duplicated
   const vmin = Math.min(bounds[2], bounds[3]); // this is duplicated
   recursive_assign(options, Options(vmin));

@@ -30,7 +30,7 @@ const render_components = (graph, options = {}) => {
   if (!options.attributes) {
     options.attributes = {};
   }
-  return [K.boundaries, K.edges, K.faces, K.vertices]
+  return [K.boundaries, K.faces, K.edges, K.vertices]
   .filter(key => options[key] === true)
   .map(key => {
     const group = Libraries.SVG.g();

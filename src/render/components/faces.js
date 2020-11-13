@@ -3,12 +3,17 @@
  */
 import * as K from "../../keys";
 import Libraries from "../../environment/libraries";
-import {
-  make_faces_coloring_from_faces_matrix,
-  make_faces_coloring,
-} from "../../graph/make";
+import math from "../../../include/math";
 
 // todo: include sorting with "facesOrder"
+const get_faces_winding = (graph) => graph
+  .faces_vertices
+  .map(fv => fv.map(v => graph.vertices_coords[v]) // face coords
+    .map((c, i, arr) => [c, arr[(i + 1) % arr.length], arr[(i + 2) % arr.length]])
+    .map(tri => math.core.cross2(
+      math.core.subtract(tri[1], tri[0]),
+      math.core.subtract(tri[2], tri[1]),
+    )).reduce((a, b) => a + b, 0));
 
 const faces_sorted_by_layer = function (faces_layer) {
   return faces_layer.map((layer, i) => ({ layer, i }))
@@ -16,30 +21,16 @@ const faces_sorted_by_layer = function (faces_layer) {
     .map(el => el.i);
 };
 
-const make_faces_sidedness = function (graph) {
-  // determine coloring of each face
-  let coloring = graph[K.faces_re_coloring];
-  if (coloring == null) {
-    coloring = (K.faces_re_matrix in graph)
-      ? make_faces_coloring_from_faces_matrix(graph[K.faces_re_matrix])
-      : make_faces_coloring(graph, 0);
-    // replace this with a face-vertex-winding-order calculator
-  }
-  return coloring.map(c => (c ? K.front : K.back));
-};
-
 const finalize_faces = function (graph, svg_faces) {
   const isFoldedForm = typeof graph.frame_classes === K.object
     && graph.frame_classes !== null
     && !(graph.frame_classes.includes(K.creasePattern));
+  // todo: include other ways of determining faces_ordering
   const orderIsCertain = graph[K.faces_re_layer] != null
     && graph[K.faces_re_layer].length === graph[K.faces_vertices].length;
-  // todo: include other ways of determining faces_ordering
-  if (orderIsCertain && isFoldedForm) {
-    // only if face order is known
-    make_faces_sidedness(graph)
-      .forEach((side, i) => svg_faces[i][K.setAttributeNS](null, K._class, side));
-  }
+  get_faces_winding(graph)
+    .map(c => (c < 0 ? K.front : K.back))
+    .forEach((side, i) => svg_faces[i][K.setAttributeNS](null, K._class, side));
   return (orderIsCertain
     ? faces_sorted_by_layer(graph[K.faces_re_layer]).map(i => svg_faces[i])
     : svg_faces);

@@ -7,7 +7,7 @@ import render_components from "./components/index";
 import Defs from "./defs";
 import SvgAttributes from "./attributes";
 
-export const render_into_svg = (svg, graph, options) => {
+export const render_into_svg = (svg, graph = {}, options = {}) => {
   // options
   make_options(graph, options);
   // set attributes, populate svg with components and metadata section

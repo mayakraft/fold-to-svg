@@ -3,7 +3,7 @@
  */
 import * as K from "../../keys";
 import Libraries from "../../environment/libraries";
-import { get_boundary } from "../../../src/graph/boundary";
+import { get_boundary } from "../../graph/boundary";
 
 export const boundaries_polygon = (graph) => {
   // todo this needs to be able to handle multiple boundaries

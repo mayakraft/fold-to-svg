@@ -49,6 +49,7 @@ const FoldToSvg = (arg, options = {}) => {
 Object.assign(FoldToSvg, {
   render_into_svg,
   render_components,
+  options: make_options,
   boundaries_polygon,
   vertices_circle,
   edges_path_data,

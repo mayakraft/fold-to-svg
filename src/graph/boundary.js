@@ -2,7 +2,19 @@
  * fold to svg (c) Robby Kraft
  */
 import * as K from "../keys";
-import { make_vertices_edges } from "./make";
+
+const make_vertices_edges = function (graph) {
+  if (!graph[K.edges_vertices]) { return undefined; }
+  const vertices_edges = [];
+  graph[K.edges_vertices].forEach((ev, i) => ev
+    .forEach((v) => {
+      if (vertices_edges[v] === undefined) {
+        vertices_edges[v] = [];
+      }
+      vertices_edges[v].push(i);
+    }));
+  return vertices_edges;
+};
 
 export const bounding_rect = function (graph) {
   if (graph[K.vertices_coords] == null
